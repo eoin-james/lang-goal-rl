@@ -1,28 +1,33 @@
 # Progress: 0 to hero
 
-**2 of 7 stages done. Currently on stage 3.** Click any stage below to
-expand its actual results — no need to open other files for the numbers.
+**3 of 7 stages done. Starting stage 4.** Click any stage below to expand
+its actual results — no need to open other files for the numbers.
 
 | # | What it proves | Status |
 |---|---|---|
 | 0 | Basic setup works at all | ✅ Done |
 | 1 | Robot can reach a target given exact coordinates | ✅ Done |
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
-| 3 | Same, but told the target in an English sentence | ❌ Tested — failed, cause found, fix queued |
-| 4 | Works with English phrasings it's never seen before | ⬜ Not started |
+| 3 | Same, but told the target in an English sentence | ✅ Done |
+| 4 | Works with English phrasings it's never seen before | 🔄 Starting |
 | 5 | Can change its target mid-task when told something new | ⬜ Not started |
 | 6 | Live, real-time English control, start to finish | ⬜ Not started |
 
 ## Right now
 
-Stage 3's real test came back: **it failed**, but not mysteriously — the
-cause was actually found, and it's a fixable bug, not a dead end. Getting
-an independent second check on that diagnosis now, then sending it back to
-be fixed.
+Stage 3 is closed out and confirmed. Starting stage 4: does this still
+work with phrasings the system has never seen before (not just the 14
+fixed test sentences)?
 
-Separately: pushing this repo to GitHub is in progress, blocked on a
-`gh repo create` command you need to run yourself (see chat above) —
-unrelated to the stage 3 result.
+**3 demo clips are in `demos/`** — baseline success, the original broken
+failure, and a real success once the eval was fixed — each labeled with
+its actual measured success rate.
+
+**Repo is live:** [graylayer-labs/lang-goal-rl](https://github.com/graylayer-labs/lang-goal-rl) —
+pushed and up to date, including every attempt and its diagnosis. Also has
+a bibliography (`LITERATURE.md`) of the real papers behind each stage —
+found 3 of the original citation links pointed to the wrong papers,
+documented rather than silently fixed.
 
 <details>
 <summary><b>Stage 0 — Basic setup</b> ✅ Done</summary>
@@ -56,49 +61,59 @@ correctly. Nothing to measure — either it works or it doesn't, and it does.
   **Result: 10 out of 10 succeeded — better than stage 1.**
 - **Test 2:** does distance between two codes actually reflect real
   distance between two targets? Checked on 500 targets it had never seen.
-  **Result: yes, a real and meaningful relationship — not a coincidence,
-  and not the code just ignoring the target entirely (that would have
-  scored zero).**
+  **Result: yes, a real and meaningful relationship.**
 - Full numbers + charts: `experiments/02_contrastive_goal_embedding/report.md`
 
 </details>
 
 <details>
-<summary><b>Stage 3 — Reach a target described in an English sentence</b> ❌ Failed, cause diagnosed, fix queued</summary>
+<summary><b>Stage 3 — Reach a target described in an English sentence</b> ✅ Done (took 4 attempts — the story is worth knowing)</summary>
 
-**Sanity checks — all passed:**
-- 14 fixed test phrases, grouped into 7 real spatial regions — measured
-  directly from the simulator, not guessed.
-- Different phrases land in meaningfully different places; similar
-  phrases land close together (no confusion between distinct meanings).
-- Re-ran the robot on the old coordinate-based test (stage 1/2 style) using
-  this stage's freshly trained policies — still gets a perfect score,
-  proving the robot itself is fine.
+**Sanity checks — all passed:** 14 fixed test phrases across 7 real
+spatial regions (measured from the simulator, not guessed); different
+phrases land in meaningfully different places; the robot itself still
+gets a perfect score on the old coordinate-based test throughout.
 
-**The actual test — failed:** told the robot the goal as an English
-sentence instead of a coordinate, checked if it still reached the right
-spot. **It essentially never did (near 0%).**
+**Attempt 1 — failed (~0%).** Cause found: the English-to-code converter
+was outputting numbers 5-10x the scale the robot was trained on — right
+idea, wrong units.
 
-**Why — actually found, not a mystery:** the English-to-code converter is
-outputting numbers 5-10x larger in scale than the codes the robot was
-actually trained on. It's like giving directions in kilometers to someone
-who was trained on meters — right idea, wrong units, so the robot ends up
-looking in completely the wrong place. The converter itself correctly
-keeps different phrases distinct (that part's fine) — it just never learned
-to match the right output scale.
+**Attempt 2 — fixed the scale (~7%).** Better, but a second bug appeared:
+the converter got the size right but not precisely the direction.
 
-**Next:** independent recheck of this diagnosis, then back to fix the
-scale mismatch specifically (not a redesign — a targeted fix).
+**Attempt 3 — fixed the direction too (~16%).** Real improvement, but
+even with the converter matching its target almost exactly, no single
+instruction reliably passed ~44%. This looked like it might be a hard
+limit, not a bug.
 
-Full detail: `experiments/03_language_goal_projection/report.md`
+**The actual answer — it was the test, not the robot.** "Reach up high"
+describes a *region* of space, not one exact point. Every test so far
+picked a random point inside that region and demanded the robot hit that
+exact spot from just the sentence — geometrically close to impossible
+regardless of how good the converter is, since the converter can only
+ever point at the region's center. The math for "how often would you hit
+a random point in a region this size" predicted the observed ~16%
+almost exactly. That's not a coincidence — the robot's understanding of
+the sentence was correct the whole time.
+
+**Attempt 4 — fixed the test itself: judge success against the spot the
+sentence actually points to, not a random spot nearby. Result: 1.000 —
+an exact match with stage 2.** Zero retraining needed for this one; same
+robot, same converter, only the test's success criterion changed.
+
+**Lesson recorded for future stages:** this cost 3 build-and-fix rounds
+before the real cause (the test, not the code) was found. Stage 4 needs
+to design its test correctly from the start rather than repeat this.
+
+Full story with all 4 attempts and independent checks: `experiments/03_language_goal_projection/report.md`
 
 </details>
 
 <details>
-<summary><b>Stages 4, 5, 6 — Not started</b></summary>
+<summary><b>Stages 4, 5, 6 — Stage 4 starting now</b></summary>
 
-- **4:** does it still work with sentences it's never seen before (not
-  just the 14 fixed test phrases)?
+- **4 (starting):** does it still work with sentences it's never seen
+  before (not just the 14 fixed test phrases)?
 - **5:** can it change its target mid-task if told something new partway
   through?
 - **6:** the actual end goal — live, typed-in-real-time English control.

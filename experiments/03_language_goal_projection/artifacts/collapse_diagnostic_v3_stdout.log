@@ -1,0 +1,10 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11952.89it/s]
+n_instructions=14 n_distinct_regions=7
+min_pairwise_distance=0.000020
+mean_pairwise_distance=0.028920
+min_cross_region_pairwise_distance=0.020599
+collapse_epsilon=0.002123
+min_cross_region_distance / collapse_epsilon = 9.70x
+is_collapsed=False

@@ -21,7 +21,7 @@ in the final writeup as future work, not as an unproven claim.
 | 0 | Plumbing | gymnasium-robotics `FetchReach-v4` (MuJoCo-backed), env reset/step loop | — | Loop runs end-to-end: reset, inspect Dict obs (`observation`/`achieved_goal`/`desired_goal`), step | **Done** | — |
 | 1 | Goal-conditioned baseline (UVFA + HER) | SB3 `SAC` + `HerReplayBuffer`, same env | multi-goal conditioning on literal xyz goal (`experiments/01_uvfa_her_baseline/train.py`) | Near-100% success rate over held-out eval episodes on FetchReach | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** | [report](experiments/01_uvfa_her_baseline/report.md) |
 | 2 | Learned continuous goal embedding | Eysenbach et al. Contrastive RL architecture (scoped adaptation — frozen encoder pretrained via InfoNCE, not a full critic-loss replacement) | swap literal goal for a learned latent (`experiments/02_contrastive_goal_embedding/`) | Success rate matches stage-1 baseline within tolerance; distance-in-latent correlates with true task distance | **Done (10/10 seeds ≥0.98, r=0.571 held-out distance correlation)** | [report](experiments/02_contrastive_goal_embedding/report.md) |
-| 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **FAIL (3 seeds) — collapse check passes (143.85x margin), success rate fails (~0%). Root cause diagnosed, fix in progress — see Known risks.** | [report](experiments/03_language_goal_projection/report.md) |
+| 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
 | 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | Not started | — |
 | 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | Not started | — |
 | 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
@@ -55,3 +55,24 @@ numbers, charts, and any candidate comparison live in the linked report._
   (embedding, language projection, etc.) being tested.** See
   `experiments/01_uvfa_her_baseline/report.md`'s Pass 2 reviewer verdict for
   full reasoning.
+- **Region-vs-point ground truth (confirmed stage 3, cost 3 build/fix
+  rounds — apply this lesson before stage 4 starts, don't rediscover it)**:
+  a language instruction ("reach up high") describes a *region* of goal
+  space, but a fixed embedding per instruction can only ever represent one
+  point in that region (its centroid). Judging eval success against a
+  freshly-sampled random point elsewhere in the region — rather than
+  against the centroid the embedding actually represents — is close to a
+  geometric impossibility regardless of embedding quality: stage 3's
+  measured regions were 2-6x wider than FetchReach's 0.05m success radius,
+  and the resulting ~15% success ceiling matched pure geometry almost
+  exactly (independently re-derived and confirmed by the reviewer), not
+  embedding inaccuracy. **Fix was a one-line eval change (judge against
+  the region centroid, the same point the projection was trained toward),
+  not further model training** — three earlier attempts spent real effort
+  improving the projection's scale and direction before this was caught.
+  **Stage 4 (open vocabulary) must design its eval the same way from the
+  start**: know whether an instruction's target is being judged against a
+  fixed representative point or a sampled region member, and pick
+  deliberately — don't let this recur by default. See
+  `experiments/03_language_goal_projection/report.md`'s Attempt 4 section
+  and its reviewer verdict for the full geometric analysis.

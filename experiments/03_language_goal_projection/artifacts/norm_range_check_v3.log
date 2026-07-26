@@ -1,0 +1,21 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 9997.99it/s]
+ProjectionNormCheck: FAILED
+  reference: mean=0.0393 std=0.0088 (tolerance=2.0x -> bounds=[0.0196, 0.0786])
+  0.0303  'move your hand to the center'
+  0.0303  'keep the gripper in the middle of the workspace'
+  0.0248  'move your hand forward'
+  0.0248  'reach out in front of you'
+  0.0203  'pull your hand back'
+  0.0203  'reach backward toward yourself'
+  0.0195  'move your hand to the left'  <-- OUT OF RANGE
+  0.0195  'reach toward the left side'  <-- OUT OF RANGE
+  0.0190  'move your hand to the right'  <-- OUT OF RANGE
+  0.0189  'reach toward the right side'  <-- OUT OF RANGE
+  0.0182  'reach up high'  <-- OUT OF RANGE
+  0.0181  'move your hand upward'  <-- OUT OF RANGE
+  0.0163  'reach down low'  <-- OUT OF RANGE
+  0.0163  'move your hand downward'  <-- OUT OF RANGE
+  8 instruction(s) out of range: ['move your hand to the left', 'reach toward the left side', 'move your hand to the right', 'reach toward the right side', 'reach up high', 'move your hand upward', 'reach down low', 'move your hand downward']
+PASSED=False

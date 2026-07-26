@@ -10,49 +10,57 @@ module owns two things:
    `GoalEncoder` and a fixed instruction vocabulary's region assignments
    (see `goal_region_vocabulary.py`).
 
-Loss choice: for each instruction, a batch of true xyz goals is sampled from
-its region (`sample_region_goals`) and averaged through the frozen
-`GoalEncoder` to get that region's mean embedding — a stochastic estimate of
-"where this region truly sits". Regressing the projection's output straight
-to that mean with MSE (no separation term) was considered and rejected:
-nothing prevents two regions whose *true* mean embeddings happen to sit
-close together (adjacent regions of a small, contrastively-pretrained goal
-space aren't guaranteed to be far apart) from converging to near-identical
-projected points — that's exactly the failure stage 3's proof gate needs
-ruled out. Reusing `contrastive.info_nce_loss` (already used to pretrain
-`GoalEncoder` itself, see `contrastive.py`) with each instruction's
-projected embedding as the anchor and its region's mean embedding as the
-positive gets the MSE-like pull *and* an explicit push against every other
-instruction's region embedding in the same training batch — directly
-targeting "distinct instructions don't collapse".
+Loss choice, attempt 1/2 (superseded, kept here for context): a batch of
+true xyz goals was sampled from each instruction's region
+(`sample_region_goals`) and averaged through the frozen `GoalEncoder` to
+get that region's mean embedding — but this was *resampled every training
+step* from a small batch, a noisy per-step estimate. `contrastive.info_nce_loss`
+was used on top of it (projected embedding as anchor, resampled region mean
+as positive) to add an explicit push against every other instruction's
+region embedding in the same batch, targeting "distinct instructions don't
+collapse". Attempt 1 found `info_nce_loss` is scale-invariant
+(`F.normalize()` on both inputs), so attempt 2 added an explicit
+norm-matching MSE term (`combined_projection_loss`) alongside it. Attempt 2
+fixed the scale defect (fail-fast norm check passed) but RL success rate
+still only reached ~7% — see
+`experiments/03_language_goal_projection/report.md`'s attempt 2 reviewer
+verdict.
 
-**Scale fix (stage 3 FAIL post-mortem, see `experiments/03_language_goal_projection/report.md`):**
-`info_nce_loss` calls `F.normalize()` on both its inputs, which makes it
-mathematically invariant to any positive rescaling of the projection's
-output — no amount of training against that loss alone can pull the output
-norm toward the frozen `GoalEncoder`'s real operating range, which is
-exactly what happened (trained outputs landed 5-10x outside that range,
-collapsing RL success to ~0% despite instructions staying well-separated).
-`combined_projection_loss` below adds an explicit MSE penalty between the
-projection's per-instruction output norm and its region's target-embedding
-norm, alongside the existing InfoNCE separation term. `DEFAULT_NORM_LOSS_WEIGHT`
-was picked by sweeping {1, 10, 50, 200} against both a real trained
-`GoalEncoder` checkpoint (16-dim) and this module's small random-init test
-fixtures (4-dim): weight 10 consistently pulled the mean output norm within
-single-digit percent of the target norm in a few hundred steps, while
-leaving the converged InfoNCE term within the same order of magnitude as
-running without the norm term at all (i.e. separation is not measurably
-degraded) — weight 1 undercorrected (~3x residual mismatch) and weight 50-200
-gave no further norm-matching benefit while measurably slowing the InfoNCE
-term's convergence.
+**Attempt 3 (current): direct regression to a fixed, precomputed centroid.**
+The reviewer's diagnosis: with a closed, ~14-instruction fixed vocabulary,
+there is no reason to keep resampling a noisy per-step target when the
+target regions' *true* mean embeddings are a fixed, known quantity that can
+be computed once. The earlier "MSE alone might let two nearby regions
+collapse" concern (which motivated adding InfoNCE's separation term in the
+first place) is moot here: collapse is a property of whether the true
+region centroids under the frozen `GoalEncoder` are separated, which is a
+structural fact about `GoalEncoder`'s pretraining, not something this
+projection's loss needs to enforce — and it's already independently
+confirmed true (24.68x margin over the collapse threshold, attempt 2's
+`instruction_collapse_diagnostic` re-check). So the fix is: precompute each
+instruction's region centroid once via `precompute_instruction_targets`
+(large sample, no resampling), then regress the projection's output
+straight to it with plain MSE (`regression_loss`) — no InfoNCE term, no
+separate norm term. Matching the target vector exactly also matches its
+norm (norm is a continuous function of the vector), so the norm-matching
+term attempt 2 added is now redundant by construction; this is verified
+empirically, not just asserted, by
+`test_trained_projection_output_norms_track_target_norms_without_a_separate_norm_term`
+in `tests/lang_goal_rl/test_language_goal_projection.py`. Whether directional
+accuracy against the true centroid (see
+`instruction_direction_diagnostic.py`) is actually what predicts RL success
+-- or whether some other confound is at play -- is an open question this
+module doesn't answer; it only makes fixed-target regression available so
+that question can be investigated on a clean signal instead of a noisy one.
 
-`check_projection_norm_range` (also below) is the fail-fast check the
-reviewer asked for: given a trained projection's outputs and the frozen
-encoder's *measured* operating-range norms (via `measure_reference_norms`),
-it flags any instruction whose output norm falls outside a tolerance band
-around the reference mean — cheap enough to run right after
-`train_projection` returns, catching a repeat of this exact failure mode
-before spending an RL training budget on it again.
+`check_projection_norm_range` (below) is kept as an offline post-hoc sanity
+check: given a trained projection's outputs and the frozen encoder's
+*measured* operating-range norms (via `measure_reference_norms`), it flags
+any instruction whose output norm falls outside a tolerance band around the
+reference mean. It is no longer load-bearing for correctness (regression to
+the encoder's own embeddings makes an in-range norm essentially automatic),
+but it is cheap and catches a training bug (e.g. a bad loss edit) before
+spending an RL budget rediscovering it.
 """
 
 from __future__ import annotations
@@ -65,9 +73,8 @@ import torch
 import torch.nn.functional as f  # noqa: N812 -- mirrors contrastive.py's common torch.nn.functional alias
 from torch import nn
 
-from lang_goal_rl.contrastive import info_nce_loss
 from lang_goal_rl.goal_encoder import DEFAULT_EMBED_DIM
-from lang_goal_rl.goal_region_vocabulary import MEASURED_GOAL_BOX, sample_region_goals
+from lang_goal_rl.goal_region_vocabulary import MEASURED_GOAL_BOX, compute_region_target_embeddings
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -78,11 +85,13 @@ if TYPE_CHECKING:
 DEFAULT_INPUT_DIM = 384
 """Matches `language_embedding.LANGUAGE_EMBED_DIM` (`all-MiniLM-L6-v2`'s output size)."""
 
-DEFAULT_NORM_LOSS_WEIGHT = 10.0
-"""Weight applied to the norm-matching MSE term in `combined_projection_loss`.
-See the module docstring's "Scale fix" section for the sweep that picked this
-value: it corrects the output-norm mismatch to within a few percent without
-measurably degrading the InfoNCE separation term's convergence."""
+DEFAULT_N_TARGET_SAMPLES = 1000
+"""Number of xyz samples averaged per region when precomputing each
+instruction's fixed regression target (`precompute_instruction_targets`).
+1000 (the reviewer's suggested floor) trades off a tighter estimate of the
+region's true mean embedding against the one-time cost of this precompute
+-- run once per training call, not per step, so a larger sample here is
+cheap relative to attempt 2's old per-step resampling cost."""
 
 DEFAULT_NORM_RANGE_TOLERANCE = 2.0
 """Default multiplicative tolerance for `check_projection_norm_range`: a
@@ -144,64 +153,75 @@ class LanguageGoalProjection(nn.Module):
         return self.net(sentence_embeddings.to(torch.float32))
 
 
-def _region_mean_embeddings(
+def precompute_instruction_targets(
     goal_encoder: GoalEncoder,
     region_names: Sequence[str],
-    box: GoalBox,
-    n_samples: int,
-    seed: int,
-) -> torch.Tensor:
-    """One row per name in `region_names`: the mean frozen-encoder embedding of a fresh region sample.
-
-    Resampled (with a different `seed`) by the caller on every training
-    step, so this is a noisy but unbiased per-step estimate of each region's
-    true embedding centroid rather than a single fixed target — acting as a
-    mild data-augmentation effect on the regression/contrastive target.
-    """
-    rows = []
-    with torch.no_grad():
-        for i, name in enumerate(region_names):
-            goals = sample_region_goals(name, n_samples, seed=seed + i, box=box)
-            embeddings = goal_encoder(torch.from_numpy(goals).float())
-            rows.append(embeddings.mean(dim=0))
-    return torch.stack(rows)
-
-
-def combined_projection_loss(
-    anchor_embeddings: torch.Tensor,
-    positive_embeddings: torch.Tensor,
     *,
-    norm_loss_weight: float = DEFAULT_NORM_LOSS_WEIGHT,
+    box: GoalBox = MEASURED_GOAL_BOX,
+    n_samples: int = DEFAULT_N_TARGET_SAMPLES,
+    seed: int = 0,
 ) -> torch.Tensor:
-    """InfoNCE separation plus an explicit norm-matching penalty.
+    """One row per name in `region_names`: that region's fixed, precomputed-once true centroid.
 
-    `info_nce_loss` alone cannot constrain the projection's output scale:
-    it L2-normalizes both its inputs internally, so it is provably invariant
-    to any positive rescaling of `anchor_embeddings` (see
-    `test_plain_info_nce_loss_is_scale_invariant_to_anchor_rescaling` in
-    `tests/lang_goal_rl/test_language_goal_projection.py` for a direct
-    demonstration). The added term is an MSE penalty between each row's
-    anchor norm and its matched positive's norm, which *does* depend on
-    scale and therefore gives training an actual gradient toward the
-    frozen encoder's real output magnitude.
+    Computed once per *unique* region name (via `compute_region_target_embeddings`,
+    a large `n_samples`-point average through the frozen `goal_encoder`) and
+    broadcast back to every row of `region_names`, so two instructions
+    sharing a region (e.g. synonyms) regress toward the exact same point
+    rather than two independently-sampled noisy estimates of it. This is the
+    core change from attempts 1/2's per-step resampling: called once by
+    `train_projection`, before its optimization loop starts, not once per
+    step.
+
+    Args:
+        goal_encoder: Stage 2's pretrained `GoalEncoder`, used as a frozen
+            source of ground-truth region embeddings.
+        region_names: Region name for each row of the target this function
+            builds (e.g. via `goal_region_vocabulary.instruction_to_region`).
+            May contain duplicates.
+        box: Goal box to sample regions within.
+        n_samples: xyz samples averaged per *unique* region to estimate its
+            true centroid. See `DEFAULT_N_TARGET_SAMPLES`'s docstring.
+        seed: Base seed for region sampling; each unique region name gets a
+            distinct offset seed, deterministic given `(region_names, seed)`.
+
+    Returns:
+        Tensor of shape (len(region_names), goal_encoder.embed_dim).
+
+    """
+    unique_names = list(dict.fromkeys(region_names))
+    unique_targets = compute_region_target_embeddings(
+        goal_encoder, unique_names, box=box, n_samples=n_samples, seed=seed,
+    )
+    name_to_target = dict(zip(unique_names, unique_targets, strict=True))
+    return torch.stack([name_to_target[name] for name in region_names])
+
+
+def regression_loss(anchor_embeddings: torch.Tensor, target_embeddings: torch.Tensor) -> torch.Tensor:
+    """Plain MSE between each instruction's projected output and its fixed target.
+
+    Chosen over Huber loss: the target here is a fixed, precomputed constant
+    for the whole training run (see `precompute_instruction_targets`), not a
+    noisy per-step label needing robustness to outliers -- Huber's advantage
+    over MSE (a linear rather than quadratic penalty past some delta, to
+    limit the influence of outlier labels) has no defect here to guard
+    against. MSE also directly optimizes both direction *and* magnitude in
+    one term with no separate scale-matching mechanism needed (see the
+    module docstring's "Attempt 3" section and
+    `test_trained_projection_output_norms_track_target_norms_without_a_separate_norm_term`
+    in `tests/lang_goal_rl/test_language_goal_projection.py`), unlike attempt
+    1/2's InfoNCE-based loss, which is provably scale-invariant.
 
     Args:
         anchor_embeddings: Tensor of shape (batch, embed_dim) — the
             projection's output for each instruction.
-        positive_embeddings: Tensor of shape (batch, embed_dim), row-aligned
-            with `anchor_embeddings` — each instruction's region target
-            embedding.
-        norm_loss_weight: Multiplier on the norm-matching term relative to
-            the InfoNCE term. See `DEFAULT_NORM_LOSS_WEIGHT`'s docstring for
-            how this default was picked.
+        target_embeddings: Tensor of shape (batch, embed_dim), row-aligned
+            with `anchor_embeddings` — each instruction's fixed target.
 
     Returns:
-        Scalar loss tensor: `info_nce_loss(...) + norm_loss_weight * norm_mse`.
+        Scalar MSE loss tensor.
 
     """
-    separation_loss = info_nce_loss(anchor_embeddings, positive_embeddings)
-    norm_loss = f.mse_loss(anchor_embeddings.norm(dim=1), positive_embeddings.norm(dim=1))
-    return separation_loss + norm_loss_weight * norm_loss
+    return f.mse_loss(anchor_embeddings, target_embeddings)
 
 
 def train_projection(
@@ -211,17 +231,20 @@ def train_projection(
     *,
     box: GoalBox = MEASURED_GOAL_BOX,
     n_steps: int = 500,
-    n_goal_samples_per_step: int = 64,
+    n_target_samples: int = DEFAULT_N_TARGET_SAMPLES,
     learning_rate: float = 1e-3,
     seed: int = 0,
     projection: LanguageGoalProjection | None = None,
-    norm_loss_weight: float = DEFAULT_NORM_LOSS_WEIGHT,
 ) -> tuple[LanguageGoalProjection, list[float]]:
-    """Train a projection so each instruction's embedding lands near its region and away from others.
+    """Train a projection via direct regression to each instruction's fixed, precomputed-once target.
 
     `goal_encoder` is frozen throughout (its parameters' `requires_grad` is
-    left untouched, and the region-embedding computation runs under
-    `torch.no_grad()`) — only `projection`'s weights are updated.
+    left untouched, and the target-embedding computation runs under
+    `torch.no_grad()`) — only `projection`'s weights are updated. The
+    regression target is computed exactly once, before the optimization loop
+    starts (see `precompute_instruction_targets`), not resampled per step —
+    the fix for attempt 2's diagnosed defect (a noisy per-step target adding
+    directional noise a closed, fixed vocabulary doesn't need to tolerate).
 
     Args:
         goal_encoder: Stage 2's pretrained `GoalEncoder`, used as a frozen
@@ -236,23 +259,20 @@ def train_projection(
             `goal_region_vocabulary.instruction_to_region`).
         box: Goal box to sample regions within.
         n_steps: Number of optimizer steps.
-        n_goal_samples_per_step: xyz samples averaged per region, per step,
-            to estimate that step's target embedding (see
-            `_region_mean_embeddings`).
+        n_target_samples: xyz samples averaged per unique region when
+            precomputing its fixed target (see
+            `precompute_instruction_targets`) — a one-time cost, not
+            per-step.
         learning_rate: Adam learning rate for `projection`'s parameters.
-        seed: Seed for region-sampling randomness across training steps.
+        seed: Seed for the one-time target precompute's region sampling.
         projection: An existing `LanguageGoalProjection` to continue training.
             If `None`, a fresh one is constructed sized to
             `sentence_embeddings`' and `goal_encoder`'s dimensions.
-        norm_loss_weight: Weight on the norm-matching term added to the
-            InfoNCE loss (see `combined_projection_loss`). Set to `0.0` to
-            recover the old (scale-unconstrained) behavior.
 
     Returns:
         A tuple `(projection, loss_history)`: the trained module and the
-        combined (InfoNCE + norm-matching) loss recorded at every step
-        (useful for a caller checking that training actually reduced the
-        loss).
+        regression loss recorded at every step (useful for a caller checking
+        that training actually reduced the loss).
 
     Raises:
         ValueError: If `sentence_embeddings` and `region_names` have
@@ -274,20 +294,18 @@ def train_projection(
     for parameter in goal_encoder.parameters():
         parameter.requires_grad = False
 
-    optimizer = torch.optim.Adam(resolved_projection.parameters(), lr=learning_rate)
-    rng = np.random.default_rng(seed)
+    targets = precompute_instruction_targets(
+        goal_encoder, region_names, box=box, n_samples=n_target_samples, seed=seed,
+    )
 
+    optimizer = torch.optim.Adam(resolved_projection.parameters(), lr=learning_rate)
     frozen_sentence_embeddings = sentence_embeddings.detach().to(torch.float32)
 
     loss_history: list[float] = []
     for _step in range(n_steps):
-        step_seed = int(rng.integers(0, 2**31 - 1))
-        positive = _region_mean_embeddings(
-            goal_encoder, region_names, box, n_goal_samples_per_step, step_seed,
-        )
         anchor = resolved_projection(frozen_sentence_embeddings)
 
-        loss = combined_projection_loss(anchor, positive, norm_loss_weight=norm_loss_weight)
+        loss = regression_loss(anchor, targets)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

@@ -86,8 +86,8 @@ def main() -> None:
 
     early_mean = sum(loss_history[:20]) / 20
     late_mean = sum(loss_history[-20:]) / 20
-    print(f"info_nce_loss early_mean(first 20 steps)={early_mean:.4f} late_mean(last 20 steps)={late_mean:.4f}")
-    print(f"info_nce_loss final={loss_history[-1]:.4f}")
+    print(f"regression_loss early_mean(first 20 steps)={early_mean:.4f} late_mean(last 20 steps)={late_mean:.4f}")
+    print(f"regression_loss final={loss_history[-1]:.4f}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     torch.save(

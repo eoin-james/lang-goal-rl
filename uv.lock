@@ -654,6 +654,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "gymnasium-robotics" },
+    { name = "imageio" },
     { name = "sentence-transformers" },
     { name = "stable-baselines3", extra = ["extra"] },
 ]
@@ -666,6 +667,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "gymnasium-robotics", specifier = ">=1.4.2" },
+    { name = "imageio", specifier = ">=2.37.4" },
     { name = "sentence-transformers", specifier = ">=5.6.1" },
     { name = "stable-baselines3", extras = ["extra"], specifier = ">=2.9.0" },
 ]

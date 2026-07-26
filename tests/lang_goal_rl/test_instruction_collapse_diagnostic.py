@@ -184,7 +184,7 @@ class TestCheckNoCollapse:
             region_names,
             box=SYNTHETIC_BOX,
             n_steps=200,
-            n_goal_samples_per_step=16,
+            n_target_samples=30,
             learning_rate=5e-3,
             seed=0,
             projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),

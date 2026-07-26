@@ -1,0 +1,21 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/checkpoints/seed_2.zip (no new training, seed=2)
+success_rate=1.000 over 50 episodes
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 6271.79it/s]
+language_success_rate=0.340 instruction="move your hand to the center" region="center" over 50 episodes
+language_success_rate=0.380 instruction="keep the gripper in the middle of the workspace" region="center" over 50 episodes
+language_success_rate=0.120 instruction="move your hand forward" region="reach forward" over 50 episodes
+language_success_rate=0.100 instruction="reach out in front of you" region="reach forward" over 50 episodes
+language_success_rate=0.080 instruction="pull your hand back" region="reach back" over 50 episodes
+language_success_rate=0.160 instruction="reach backward toward yourself" region="reach back" over 50 episodes
+language_success_rate=0.200 instruction="move your hand to the left" region="reach left" over 50 episodes
+language_success_rate=0.040 instruction="reach toward the left side" region="reach left" over 50 episodes
+language_success_rate=0.120 instruction="move your hand to the right" region="reach right" over 50 episodes
+language_success_rate=0.140 instruction="reach toward the right side" region="reach right" over 50 episodes
+language_success_rate=0.160 instruction="reach up high" region="reach up high" over 50 episodes
+language_success_rate=0.100 instruction="move your hand upward" region="reach up high" over 50 episodes
+language_success_rate=0.100 instruction="reach down low" region="reach down low" over 50 episodes
+language_success_rate=0.160 instruction="move your hand downward" region="reach down low" over 50 episodes

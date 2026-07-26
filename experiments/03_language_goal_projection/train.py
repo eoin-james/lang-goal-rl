@@ -13,10 +13,15 @@ Two phases per seed, run back to back in one process:
 
 2. The actual stage-3 substitution test, once per fixed instruction
    (`goal_region_vocabulary.ALL_INSTRUCTIONS`): the env's `desired_goal` is
-   overridden after every reset to a literal xyz point sampled from that
-   instruction's real region (`sample_region_goals`) — this is what
-   determines ground-truth success/failure, exactly like HER's literal
-   goals always have. But the *policy* never sees that literal point run
+   overridden after every reset to a fixed xyz point — that instruction's
+   region *centroid* (`compute_region_centroid`), precomputed once and
+   reused across every eval episode, not resampled per episode — this is
+   what determines ground-truth success/failure, exactly like HER's literal
+   goals always have. (Attempts 1-3 resampled a fresh random in-region point
+   every episode instead; the stage-3 reviewer diagnosed this as the actual
+   cause of those attempts' near-zero success rates and attempt 4 is the
+   fix — see `evaluate_language_goal`'s docstring and `report.md`'s
+   "Attempt 4" section.) But the *policy* never sees that centroid run
    through the goal encoder; its features extractor is monkeypatched for
    the duration of this eval to substitute a fixed
    `projection(sentence_embedding(instruction))` vector wherever it would
@@ -45,11 +50,13 @@ from lang_goal_rl.goal_encoder import GoalEncoder
 from lang_goal_rl.goal_region_vocabulary import (
     ALL_INSTRUCTIONS,
     MEASURED_GOAL_BOX,
+    GoalBox,
     instruction_to_region,
+    region_names,
     sample_region_goals,
 )
 from lang_goal_rl.language_embedding import encode_instructions
-from lang_goal_rl.language_goal_projection import LanguageGoalProjection
+from lang_goal_rl.language_goal_projection import DEFAULT_N_TARGET_SAMPLES, LanguageGoalProjection
 
 ENV_ID = "FetchReach-v4"
 EXPERIMENT_DIR = Path(__file__).parent
@@ -69,6 +76,64 @@ different offset from `LITERAL_EVAL_BASE_SEED` so the two protocols never
 reuse the same env-reset seed for a different purpose, and different
 instructions/regions use `LANGUAGE_EVAL_BASE_SEED + region_index * n_episodes`
 so no two instructions share reset seeds either (see `main`)."""
+
+CENTROID_TARGET_SEED = 0
+"""Base seed for `compute_region_centroid`'s sampling. Matches
+`train_projection.PROJECTION_SEED` — the seed
+`language_goal_projection.precompute_instruction_targets` used (via
+`compute_region_target_embeddings`) to build the *embedding-space*
+regression target every stage-3 projection checkpoint (attempt 3 onward) was
+trained against. Reusing the identical `(n_samples, seed)` pair per region
+means `compute_region_centroid`'s xyz mean is drawn from the exact same
+sample population as that embedding-space centroid, not a separately
+invented notion of "the region's center" — see `evaluate_language_goal`'s
+docstring (attempt 4) for why this specific consistency matters."""
+
+_REGION_SEED_OFFSET: dict[str, int] = {name: index for index, name in enumerate(region_names())}
+"""Per-region seed offset matching `precompute_instruction_targets`'s
+internal indexing: `compute_region_target_embeddings` samples region `i`'s
+embedding target with `seed=base_seed + i`, where `i` is that region's
+position in `goal_region_vocabulary.region_names()` order (the same order
+`ALL_INSTRUCTIONS` groups by, since each region's 1-2 instructions appear
+consecutively)."""
+
+
+def compute_region_centroid(
+    region_name: str,
+    *,
+    box: GoalBox = MEASURED_GOAL_BOX,
+    n_samples: int = DEFAULT_N_TARGET_SAMPLES,
+    seed: int = CENTROID_TARGET_SEED,
+) -> np.ndarray:
+    """Fixed, precomputed-once xyz centroid of a region — the mean of a large in-region sample.
+
+    Attempt 4's fix (see `evaluate_language_goal`'s docstring): the
+    language-goal eval's ground truth needs a single fixed xyz point per
+    instruction, not a freshly resampled one every episode, so this
+    averages `n_samples` rejection-sampled in-region points
+    (`sample_region_goals`) into one point — analogous to how
+    `language_goal_projection.precompute_instruction_targets` averages the
+    same region's *embeddings* into one fixed regression target, and by
+    default drawn from the exact same `(n_samples, seed)` sample population
+    as that function used for this region (same `DEFAULT_N_TARGET_SAMPLES`,
+    same `CENTROID_TARGET_SEED` + per-region offset) — this is "the region's
+    centroid" in the same sense the projection was trained against, just
+    averaged in xyz space instead of embedding space.
+
+    Args:
+        region_name: One of `goal_region_vocabulary.region_names()`.
+        box: Goal box to sample within.
+        n_samples: xyz samples averaged to estimate the centroid.
+        seed: Base seed; the actual sampling seed adds this region's offset
+            in `region_names()` order (see `_REGION_SEED_OFFSET`), so every
+            region gets a distinct, deterministic sample.
+
+    Returns:
+        Array of shape (3,): the mean xyz point of the sample.
+    """
+    region_seed = seed + _REGION_SEED_OFFSET[region_name]
+    samples = sample_region_goals(region_name, n_samples, seed=region_seed, box=box)
+    return samples.mean(axis=0)
 
 
 def load_frozen_encoder(path: Path) -> GoalEncoder:
@@ -157,13 +222,32 @@ def evaluate_language_goal(
 ) -> float:
     """Roll out the policy with its desired-goal input substituted by a language projection.
 
-    Ground truth (what decides success/failure) is a literal xyz point
-    sampled from `region_name` and written into the env's actual `goal`
-    state after every reset (via `env.unwrapped.goal`) — every downstream
-    `info["is_success"]`/`compute_reward` call in `MujocoRobotEnv.step`
-    reads `self.goal` directly, so this is a real ground-truth override, not
-    a cosmetic one (checked in `gymnasium_robotics.envs.robot_env`: `step`
-    computes `is_success`/reward/termination against `self.goal`, and
+    **Attempt 4 fix (eval-protocol, not projection or policy):** ground truth
+    is now `compute_region_centroid(region_name)` — one fixed xyz point,
+    precomputed once per region and reused for every episode of this
+    instruction. Attempts 1-3 instead drew a *fresh* random xyz point from
+    `region_name` on every single episode (`sample_region_goals(region_name,
+    n_episodes, ...)`, one row per episode). The stage-3 reviewer (see
+    `report.md`'s Attempt 3 section) diagnosed this as the actual defect:
+    the *policy* only ever sees one fixed embedding for a given instruction
+    (`projected_embedding`, unchanged across all `n_episodes` calls here),
+    which — as of attempt 3's fixed-centroid-regression projection — closely
+    matches that region's true *centroid* embedding. Judging success against
+    a random point elsewhere in a region 2-6x wider than FetchReach's 0.05m
+    success radius was close to a geometric impossibility regardless of how
+    accurate the projection was; it was scoring "does this fixed embedding
+    happen to decode near an unrelated random point" rather than "does this
+    fixed embedding decode near the point it was actually trained to
+    represent". Aligning the ground truth with what the embedding represents
+    is the fix; the projection and the trained policy are untouched.
+
+    Ground truth (what decides success/failure) is that fixed centroid,
+    written into the env's actual `goal` state after every reset (via
+    `env.unwrapped.goal`) — every downstream `info["is_success"]`/
+    `compute_reward` call in `MujocoRobotEnv.step` reads `self.goal`
+    directly, so this is a real ground-truth override, not a cosmetic one
+    (checked in `gymnasium_robotics.envs.robot_env`: `step` computes
+    `is_success`/reward/termination against `self.goal`, and
     `MujocoFetchEnv._get_obs` reports `desired_goal` as `self.goal.copy()`).
 
     What the *policy* sees for its desired-goal input is substituted
@@ -188,20 +272,20 @@ def evaluate_language_goal(
         model: A trained SAC model (same architecture as `build_model`).
         env: The FetchReach-v4 env instance `model` was trained/evaluated on.
         region_name: The instruction's region (`goal_region_vocabulary`),
-            used to sample ground-truth targets.
+            used to compute the fixed ground-truth centroid.
         projected_embedding: The instruction's `projection(sentence_embedding)`
             output, shape `(embed_dim,)` — fixed for the whole eval.
         n_episodes: Number of eval episodes to run.
-        base_seed: Base env-reset seed; episode `i` resets with `base_seed + i`
-            and also samples its ground-truth target with the same seed
-            (via `sample_region_goals`), giving this call a self-contained,
-            reproducible seed range distinct from any other call's.
+        base_seed: Base env-reset seed; episode `i` resets with `base_seed + i`,
+            giving this call a self-contained, reproducible seed range
+            distinct from any other call's. No longer used for ground-truth
+            sampling (see `compute_region_centroid`'s own, region-keyed seed).
 
     Returns:
-        Success rate over `n_episodes`, judged against the literal
-        region-sampled ground truth.
+        Success rate over `n_episodes`, judged against the fixed
+        region-centroid ground truth.
     """
-    targets = sample_region_goals(region_name, n_episodes, seed=base_seed, box=MEASURED_GOAL_BOX)
+    centroid = compute_region_centroid(region_name).astype(np.float64)
 
     extractor = model.actor.features_extractor
     original_forward = extractor.forward
@@ -219,9 +303,8 @@ def evaluate_language_goal(
         successes = []
         for episode in range(n_episodes):
             obs, _info = env.reset(seed=base_seed + episode)
-            target = targets[episode].astype(np.float64)
-            env.unwrapped.goal = target.copy()
-            obs["desired_goal"] = target.copy()
+            env.unwrapped.goal = centroid.copy()
+            obs["desired_goal"] = centroid.copy()
             terminated = truncated = False
             is_success = False
             while not (terminated or truncated):

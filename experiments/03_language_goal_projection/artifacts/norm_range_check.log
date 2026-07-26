@@ -1,0 +1,20 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10700.02it/s]
+ProjectionNormCheck: PASSED
+  reference: mean=0.0393 std=0.0088 (tolerance=2.0x -> bounds=[0.0196, 0.0786])
+  0.0401  'move your hand to the center'
+  0.0416  'keep the gripper in the middle of the workspace'
+  0.0406  'move your hand forward'
+  0.0542  'reach out in front of you'
+  0.0515  'pull your hand back'
+  0.0416  'reach backward toward yourself'
+  0.0586  'move your hand to the left'
+  0.0497  'reach toward the left side'
+  0.0376  'move your hand to the right'
+  0.0452  'reach toward the right side'
+  0.0449  'reach up high'
+  0.0473  'move your hand upward'
+  0.0643  'reach down low'
+  0.0476  'move your hand downward'
+PASSED=True

@@ -5,26 +5,34 @@ LanguageGoalProjection maps a frozen sentence-transformer embedding
 mapping the roadmap's stage 3 proof gate depends on. `train_projection`
 fits it against a fixed instruction vocabulary using region-grounded xyz
 sampling (see `goal_region_vocabulary.py`) and stage 2's frozen encoder as
-the regression/contrastive target — never against gym/MuJoCo directly, so
-these tests stay fast and offline.
+the regression target — never against gym/MuJoCo directly, so these tests
+stay fast and offline.
+
+**Attempt 3 rewrite (see `experiments/03_language_goal_projection/report.md`,
+attempt 2's reviewer verdict):** attempt 2's InfoNCE + norm-matching loss
+resampled each region's target embedding every training step from a small
+64-sample batch — a stochastic estimate that adds directional noise the
+closed, 14-instruction vocabulary doesn't need to tolerate, since the
+target regions' true centroids are already known to be well separated
+(24.68x collapse margin, independent of anything the projection learns).
+This file now tests direct regression to a *fixed*, precomputed-once
+target per instruction instead.
 """
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
 import torch
 
-from lang_goal_rl.contrastive import info_nce_loss
 from lang_goal_rl.goal_encoder import GoalEncoder
 from lang_goal_rl.goal_region_vocabulary import GoalBox, compute_region_target_embeddings
 from lang_goal_rl.language_goal_projection import (
     LanguageGoalProjection,
     ProjectionNormCheck,
-    _region_mean_embeddings,
     check_projection_norm_range,
-    combined_projection_loss,
     measure_reference_norms,
+    precompute_instruction_targets,
+    regression_loss,
     train_projection,
 )
 
@@ -65,8 +73,129 @@ class TestLanguageGoalProjection:
         assert not torch.allclose(projection(a), projection(b))
 
 
+class TestRegressionLoss:
+    """regression_loss is a plain MSE pull toward a fixed target -- no scale invariance, no separation term."""
+
+    def test_pulls_a_random_initial_output_toward_a_known_fixed_target(self) -> None:
+        """The core claim this rewrite depends on: unlike InfoNCE's stochastic
+        per-step targets, a *fixed* target is a simple, directly checkable
+        optimization problem -- no noise to control for.
+        """
+        torch.manual_seed(0)
+        anchor = torch.randn(3, 4, requires_grad=True)
+        target = torch.tensor([[1.0, 2.0, -1.0, 0.5], [0.0, 0.0, 0.0, 0.0], [-2.0, 1.0, 1.0, -1.0]])
+
+        optimizer = torch.optim.Adam([anchor], lr=0.1)
+        for _ in range(300):
+            optimizer.zero_grad()
+            loss = regression_loss(anchor, target)
+            loss.backward()
+            optimizer.step()
+
+        assert torch.allclose(anchor.detach(), target, atol=0.05)
+
+    def test_zero_for_identical_tensors(self) -> None:
+        x = torch.randn(4, 5)
+        assert regression_loss(x, x).item() == 0.0
+
+    def test_larger_for_a_bigger_mismatch(self) -> None:
+        target = torch.zeros(3, 2)
+        small_mismatch = torch.full((3, 2), 0.1)
+        big_mismatch = torch.full((3, 2), 5.0)
+
+        assert regression_loss(big_mismatch, target) > regression_loss(small_mismatch, target)
+
+    def test_returns_scalar_tensor(self) -> None:
+        anchor = torch.randn(3, 4)
+        target = torch.randn(3, 4)
+        loss = regression_loss(anchor, target)
+        assert loss.dim() == 0
+
+    def test_is_not_invariant_to_anchor_rescaling(self) -> None:
+        """Direct contrast with attempt 2's diagnosed root cause: InfoNCE's
+        `F.normalize()` made it provably blind to output scale. Plain MSE
+        regression has no such blind spot -- rescaling the anchor away from
+        the target strictly increases the loss.
+        """
+        torch.manual_seed(0)
+        anchor = torch.randn(6, 5)
+        target = torch.randn(6, 5)
+
+        baseline = regression_loss(anchor, target)
+        rescaled = regression_loss(anchor * 50.0, target)
+
+        assert rescaled.item() > baseline.item()
+
+
+class TestPrecomputeInstructionTargets:
+    """precompute_instruction_targets computes each region's true centroid ONCE, not per training step."""
+
+    def test_returns_one_row_per_region_name(self) -> None:
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        region_names = ["reach left", "reach right", "reach left"]
+
+        targets = precompute_instruction_targets(
+            goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=50, seed=0,
+        )
+
+        assert targets.shape == (3, 4)
+
+    def test_duplicate_region_names_get_an_identical_target(self) -> None:
+        """Two instructions sharing a region (e.g. synonyms) must regress toward
+        the *same* fixed point -- not two independently-sampled noisy estimates
+        of the same region, which would reintroduce the exact per-target noise
+        this rewrite removes.
+        """
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        region_names = ["reach up high", "reach down low", "reach up high"]
+
+        targets = precompute_instruction_targets(
+            goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=50, seed=0,
+        )
+
+        assert torch.equal(targets[0], targets[2])
+        assert not torch.equal(targets[0], targets[1])
+
+    def test_deterministic_for_a_given_seed(self) -> None:
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        region_names = ["reach left", "reach right"]
+
+        first = precompute_instruction_targets(goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=30, seed=3)
+        second = precompute_instruction_targets(goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=30, seed=3)
+
+        assert torch.equal(first, second)
+
+    def test_leaves_goal_encoder_parameters_unchanged(self) -> None:
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        before = [p.clone() for p in goal_encoder.parameters()]
+        region_names = ["reach left", "reach right"]
+
+        precompute_instruction_targets(goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=30, seed=0)
+
+        after = list(goal_encoder.parameters())
+        for p_before, p_after in zip(before, after, strict=True):
+            assert torch.equal(p_before, p_after)
+
+    def test_matches_a_direct_call_to_compute_region_target_embeddings_for_unique_names(self) -> None:
+        """Sanity-checks this is genuinely reusing the same grounded-sampling
+        machinery `goal_region_vocabulary` already provides for unique
+        regions, not a parallel reimplementation.
+        """
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        unique_names = ["reach left", "reach right"]
+
+        expected = compute_region_target_embeddings(
+            goal_encoder, unique_names, box=SYNTHETIC_BOX, n_samples=30, seed=0,
+        )
+        actual = precompute_instruction_targets(
+            goal_encoder, unique_names, box=SYNTHETIC_BOX, n_samples=30, seed=0,
+        )
+
+        assert torch.equal(expected, actual)
+
+
 class TestTrainProjection:
-    """train_projection fits a projection to separate distinct instructions' regions."""
+    """train_projection fits a projection via direct regression to fixed, precomputed-once targets."""
 
     def test_returns_a_language_goal_projection_and_a_loss_history(self) -> None:
         torch.manual_seed(0)
@@ -80,7 +209,7 @@ class TestTrainProjection:
             region_names,
             box=SYNTHETIC_BOX,
             n_steps=5,
-            n_goal_samples_per_step=8,
+            n_target_samples=30,
             seed=0,
             projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
         )
@@ -91,9 +220,6 @@ class TestTrainProjection:
     def test_training_reduces_mean_loss(self) -> None:
         torch.manual_seed(0)
         goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
-        # Two well-separated fake "instructions" pointing at two distinct
-        # regions -- a projection with enough steps should learn to tell
-        # them apart, i.e. the contrastive loss should trend down.
         sentence_embeddings = torch.tensor(
             [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
         )
@@ -105,7 +231,7 @@ class TestTrainProjection:
             region_names,
             box=SYNTHETIC_BOX,
             n_steps=150,
-            n_goal_samples_per_step=16,
+            n_target_samples=30,
             learning_rate=5e-3,
             seed=0,
             projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
@@ -128,7 +254,7 @@ class TestTrainProjection:
             region_names,
             box=SYNTHETIC_BOX,
             n_steps=5,
-            n_goal_samples_per_step=8,
+            n_target_samples=30,
             seed=0,
             projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
         )
@@ -149,17 +275,83 @@ class TestTrainProjection:
             region_names,
             box=SYNTHETIC_BOX,
             n_steps=2,
-            n_goal_samples_per_step=8,
+            n_target_samples=30,
             seed=0,
         )
 
         assert projection.input_dim == 384
         assert projection.embed_dim == 16
 
-    def test_trained_projection_output_norms_track_target_region_norms(self) -> None:
-        """Regression test for stage 3's FAIL: with the norm-matching term enabled,
-        the trained projection's output norms should land close to its regions'
-        true target-embedding norms -- not merely well-separated from each other.
+    def test_target_is_precomputed_once_and_not_resampled_per_step(self, monkeypatch) -> None:  # noqa: ANN001
+        """Regression test for attempt 2's exact diagnosed defect: the target
+        must be computed once regardless of `n_steps`, not resampled every
+        step. Spies on `precompute_instruction_targets` (the function
+        `train_projection` must call) and asserts it runs exactly once even
+        across many optimizer steps.
+        """
+        import lang_goal_rl.language_goal_projection as module
+
+        call_count = 0
+        original = module.precompute_instruction_targets
+
+        def counting_wrapper(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+            nonlocal call_count
+            call_count += 1
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(module, "precompute_instruction_targets", counting_wrapper)
+
+        torch.manual_seed(0)
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        sentence_embeddings = torch.randn(2, 8)
+        region_names = ["reach left", "reach right"]
+
+        module.train_projection(
+            goal_encoder,
+            sentence_embeddings,
+            region_names,
+            box=SYNTHETIC_BOX,
+            n_steps=50,
+            n_target_samples=30,
+            seed=0,
+            projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
+        )
+
+        assert call_count == 1
+
+    def test_trained_projection_output_matches_fixed_target_closely(self) -> None:
+        torch.manual_seed(0)
+        goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
+        sentence_embeddings = torch.tensor(
+            [[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        )
+        region_names = ["reach left", "reach right"]
+
+        projection, _loss_history = train_projection(
+            goal_encoder,
+            sentence_embeddings,
+            region_names,
+            box=SYNTHETIC_BOX,
+            n_steps=300,
+            n_target_samples=200,
+            learning_rate=5e-3,
+            seed=0,
+            projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
+        )
+
+        target = precompute_instruction_targets(goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=200, seed=0)
+        with torch.no_grad():
+            output = projection(sentence_embeddings)
+
+        assert torch.allclose(output, target, atol=0.05)
+
+    def test_trained_projection_output_norms_track_target_norms_without_a_separate_norm_term(self) -> None:
+        """Verifies (rather than assumes) attempt 3's simplification claim:
+        matching the target vector exactly with plain MSE regression also
+        matches its norm, with no separate norm-matching loss term needed --
+        attempt 2 needed one because InfoNCE's normalization made it blind to
+        scale; plain regression has no such blind spot (see
+        `TestRegressionLoss.test_is_not_invariant_to_anchor_rescaling`).
         """
         torch.manual_seed(0)
         goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
@@ -173,114 +365,38 @@ class TestTrainProjection:
             sentence_embeddings,
             region_names,
             box=SYNTHETIC_BOX,
-            n_steps=150,
-            n_goal_samples_per_step=16,
+            n_steps=300,
+            n_target_samples=200,
             learning_rate=5e-3,
             seed=0,
             projection=LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6),
-            norm_loss_weight=10.0,
         )
 
-        target_embeddings = compute_region_target_embeddings(
-            goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=500, seed=999,
-        )
+        target = precompute_instruction_targets(goal_encoder, region_names, box=SYNTHETIC_BOX, n_samples=200, seed=0)
         with torch.no_grad():
             output_norms = projection(sentence_embeddings).norm(dim=1)
-        target_norms = target_embeddings.norm(dim=1)
+        target_norms = target.norm(dim=1)
 
-        # Not exact (both sides are stochastic estimates from a small net),
-        # but should be within 25% of each other -- a world apart from stage
-        # 3's actual 5-10x mismatch.
-        assert torch.allclose(output_norms, target_norms, rtol=0.25, atol=0.02)
+        assert torch.allclose(output_norms, target_norms, rtol=0.1, atol=0.02)
 
-    def test_norm_loss_weight_zero_reproduces_the_old_scale_unconstrained_behavior(self) -> None:
-        """`norm_loss_weight=0.0` should recover the pre-fix behavior: the loss
-        used for the very first step is exactly `info_nce_loss` on that step's
-        anchor/positive, with no scale term mixed in.
-
-        Reuses the exact same `goal_encoder`/`projection` instances for both
-        the manual reference computation and the `train_projection` call
-        (rather than reconstructing them) so the two computations start from
-        identical weights -- no need to replay torch's global RNG stream.
-        """
+    def test_raises_on_row_count_mismatch(self) -> None:
         goal_encoder = GoalEncoder(goal_dim=3, embed_dim=4, hidden_dim=8)
         sentence_embeddings = torch.randn(2, 8)
-        region_names = ["reach left", "reach right"]
-        projection = LanguageGoalProjection(input_dim=8, embed_dim=4, hidden_dim=6)
+        region_names = ["reach left"]
 
-        # Step 0's positive only depends on numpy's RNG (independent of
-        # torch's), so this reproduces exactly what train_projection's first
-        # iteration will draw for `seed=0`.
-        step_seed = int(np.random.default_rng(0).integers(0, 2**31 - 1))
-        expected_positive = _region_mean_embeddings(goal_encoder, region_names, SYNTHETIC_BOX, 8, step_seed)
-        expected_anchor = projection(sentence_embeddings.detach().to(torch.float32))
-        expected_first_loss = info_nce_loss(expected_anchor, expected_positive).item()
-
-        _projection, loss_history_no_norm_term = train_projection(
-            goal_encoder,
-            sentence_embeddings,
-            region_names,
-            box=SYNTHETIC_BOX,
-            n_steps=1,
-            n_goal_samples_per_step=8,
-            seed=0,
-            projection=projection,
-            norm_loss_weight=0.0,
-        )
-
-        assert loss_history_no_norm_term[0] == expected_first_loss
-
-
-class TestCombinedProjectionLoss:
-    """combined_projection_loss adds a norm-matching term that info_nce_loss alone cannot express."""
-
-    def test_plain_info_nce_loss_is_scale_invariant_to_anchor_rescaling(self) -> None:
-        """Root-cause demonstration: `info_nce_loss` normalizes both inputs
-        internally, so rescaling the anchor by any positive constant has
-        provably zero effect -- this is *why* stage 3's `train_projection`
-        could not learn a scale-correct output using this loss alone.
-        """
-        torch.manual_seed(0)
-        anchor = torch.randn(6, 5)
-        positive = torch.randn(6, 5)
-
-        baseline = info_nce_loss(anchor, positive)
-        rescaled_small = info_nce_loss(anchor * 0.01, positive)
-        rescaled_huge = info_nce_loss(anchor * 500.0, positive)
-
-        assert torch.isclose(baseline, rescaled_small, atol=1e-5)
-        assert torch.isclose(baseline, rescaled_huge, atol=1e-5)
-
-    def test_combined_loss_is_not_scale_invariant_and_penalizes_norm_mismatch(self) -> None:
-        """The fix: adding the norm-matching term breaks the scale invariance
-        `info_nce_loss` alone has, and specifically penalizes an anchor whose
-        norm has drifted away from its positive's norm.
-        """
-        torch.manual_seed(0)
-        anchor = torch.randn(6, 5)
-        positive = torch.randn(6, 5)
-
-        baseline = combined_projection_loss(anchor, positive, norm_loss_weight=10.0)
-        rescaled_huge = combined_projection_loss(anchor * 50.0, positive, norm_loss_weight=10.0)
-
-        assert not torch.isclose(baseline, rescaled_huge, atol=1e-3)
-        assert rescaled_huge.item() > baseline.item()
-
-    def test_zero_norm_loss_weight_reduces_to_plain_info_nce_loss(self) -> None:
-        torch.manual_seed(0)
-        anchor = torch.randn(4, 3)
-        positive = torch.randn(4, 3)
-
-        combined = combined_projection_loss(anchor, positive, norm_loss_weight=0.0)
-        plain = info_nce_loss(anchor, positive)
-
-        assert torch.isclose(combined, plain)
-
-    def test_returns_scalar_tensor(self) -> None:
-        anchor = torch.randn(3, 4)
-        positive = torch.randn(3, 4)
-        loss = combined_projection_loss(anchor, positive)
-        assert loss.dim() == 0
+        try:
+            train_projection(
+                goal_encoder,
+                sentence_embeddings,
+                region_names,
+                box=SYNTHETIC_BOX,
+                n_steps=1,
+                n_target_samples=10,
+                seed=0,
+            )
+        except ValueError:
+            return
+        raise AssertionError("expected ValueError for row count mismatch")
 
 
 class TestMeasureReferenceNorms:
@@ -309,13 +425,10 @@ class TestMeasureReferenceNorms:
 
 
 class TestCheckProjectionNormRange:
-    """check_projection_norm_range is the fail-fast gate against a repeat of stage 3's scale mismatch."""
+    """check_projection_norm_range is a post-hoc sanity check on a trained projection's output scale."""
 
     def test_flags_a_projection_whose_norms_are_far_outside_the_reference_range(self) -> None:
-        # Reference norms cluster tightly around 0.04, matching the real
-        # measured GoalEncoder range from experiments/03's report.
         reference_norms = torch.full((100,), 0.04)
-        # Reproduces stage 3's actual failure shape: outputs ~5-10x the reference mean.
         projected = torch.tensor([[0.3, 0.0], [0.0, 0.35]])
 
         result = check_projection_norm_range(projected, reference_norms, ["reach up high", "reach down low"])

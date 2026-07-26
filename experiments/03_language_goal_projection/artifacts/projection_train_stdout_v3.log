@@ -1,0 +1,8 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+loaded frozen stage-2 goal encoder from /Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/artifacts/goal_encoder.pt
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 7178.69it/s]
+encoded 14 fixed instructions -> shape (14, 384)
+regression_loss early_mean(first 20 steps)=0.0020 late_mean(last 20 steps)=0.0000
+regression_loss final=0.0000
+saved trained projection to artifacts/language_goal_projection_v3.pt
