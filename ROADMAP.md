@@ -22,7 +22,7 @@ in the final writeup as future work, not as an unproven claim.
 | 1 | Goal-conditioned baseline (UVFA + HER) | SB3 `SAC` + `HerReplayBuffer`, same env | multi-goal conditioning on literal xyz goal (`experiments/01_uvfa_her_baseline/train.py`) | Near-100% success rate over held-out eval episodes on FetchReach | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** | [report](experiments/01_uvfa_her_baseline/report.md) |
 | 2 | Learned continuous goal embedding | Eysenbach et al. Contrastive RL architecture (scoped adaptation — frozen encoder pretrained via InfoNCE, not a full critic-loss replacement) | swap literal goal for a learned latent (`experiments/02_contrastive_goal_embedding/`) | Success rate matches stage-1 baseline within tolerance; distance-in-latent correlates with true task distance | **Done (10/10 seeds ≥0.98, r=0.571 held-out distance correlation)** | [report](experiments/02_contrastive_goal_embedding/report.md) |
 | 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
-| 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **FAIL (3 seeds) — held-out RL success 0.024 mean/0.000 median vs. 1.000 training-vocab baseline; diagnosed as projection-layer overfitting to a 14-example vocabulary, not an eval-protocol bug. See Known risks.** | [report](experiments/04_open_vocabulary/report.md) |
+| 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **FAIL (3 seeds, 2 attempts) — attempt 2's data-augmentation fix raised semantic-neighbor accuracy 0.286→0.643 (near the 0.714 NN-ceiling) but held-out RL success only reached 0.095 mean/0.000 median. Bottleneck has shifted from misclassification to region-dependent policy tolerance — see Known risks.** | [report](experiments/04_open_vocabulary/report.md) |
 | 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | Not started | — |
 | 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
 
@@ -107,6 +107,32 @@ numbers, charts, and any candidate comparison live in the linked report._
   reverse flips at k=1. This confirms the raw sentence-embedding space
   already carries plenty of region-clustering signal; the learned MLP is
   actively discarding it by memorizing 14 points instead of learning a
-  generalizing rule. Proceeding to data augmentation (more diverse training
-  phrasings per region) as the fix, per the reviewer's pre-registered
-  decision rule.
+  generalizing rule. **Data-augmentation result (attempt 2, partial fix):**
+  retraining on a 70-sentence vocabulary raised semantic-neighbor accuracy
+  to 0.643 (near the 0.714 ceiling, confirming augmentation fixes
+  classification as predicted) but held-out RL success only reached 0.095
+  mean/0.000 median — the bottleneck shifted from "wrong region" to
+  "region is correct but not precise enough for the policy," and that
+  imprecision is concentrated unevenly by region (see the new risk entry
+  below). Data augmentation alone will not close this remaining gap.
+- **Per-region policy tolerance variance (confirmed stage 4, attempt 2)**:
+  the trained SAC policy's basin of attraction around each region's target
+  goal-embedding is nonuniform. Evidence: among held-out instructions
+  correctly classified to their true region, "lower your arm toward the
+  floor" landed *closer* to its true region's centroid (distance 0.0151)
+  than "shift your gripper toward the right edge" (0.0200) yet scored 0.000
+  RL success while the latter scored 1.000 on all 3 seeds — the simple
+  "closer classification → more likely to succeed" pattern from stage 4's
+  attempt-1 diagnosis breaks down once classification itself is mostly
+  correct. 5 of the 10 total nonzero held-out/regression-check RL samples
+  involve the "reach right" region specifically. **This means classification
+  accuracy (is the projected point nearest the correct region?) is not a
+  reliable proxy for RL success (will the policy actually reach the goal?)
+  once classification is reasonably good — the two must be measured
+  separately, and a fix must target whichever layer (projection precision,
+  policy tolerance, or the stage-2 GoalEncoder's embedding-space geometry)
+  actually owns the gap, not assumed from classification numbers alone.**
+  See `experiments/04_open_vocabulary/report.md`'s attempt-2 reviewer
+  verdict for the full per-instruction distance/success breakdown and the
+  diagnostic experiment (noise-injected centroid tolerance test) designed
+  to isolate which layer is responsible before attempt 3 commits to a fix.

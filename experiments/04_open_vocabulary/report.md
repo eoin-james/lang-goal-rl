@@ -319,5 +319,86 @@ Compositional placement changed direction on both instructions: `'reach up and t
 Directly extends ROADMAP.md's 'Projection-layer overfitting to a minimal vocabulary' entry (added after attempt 1): the reviewer's prescribed fix (data augmentation) produced a real, measured improvement in the predicted direction (semantic-neighbor accuracy 0.286 -> 0.643, held-out RL mean 0.024 -> 0.095) but did not close the gap to the proof gate. Not the documented SAC deterministic-eval-collapse signature (literal eval is a clean 1.000 on all 3 seeds throughout, same checkpoints as attempt 1). Not the 'Metric mismatch' known risk (same frozen sentence-transformer, same frozen GoalEncoder, only the projection's training vocabulary changed). New finding worth adding to Known risks: augmenting a fixed-vocabulary projection's training set without deliberately including the *original* training sentences turns those original sentences into held-out data for the retrained projection -- if a future stage needs both 'ace the original vocabulary' and 'generalize to new phrasing' simultaneously, the training set must include both, not just a larger disjoint replacement set.
 
 ### Reviewer verdict
-_Left blank by the runner — filled in by the manager from the reviewer's
-return._
+
+**Verdict: FAIL**
+
+**Check 1 -- number verification.** All of attempt 2's reported numbers
+independently re-derived from raw logs and confirmed exact: semantic-neighbor
+0.643 (9/14, counted directly from `semantic_neighbor_diagnostic_v2_stdout.log`),
+held-out RL mean=0.095/median=0.000/nonzero=4/42 (re-summed per-seed:
+seed0=0.071, seed1=0.143, seed2=0.071), regression-check mean=0.143/nonzero=6/42.
+No inflation, no substitution -- the report's own numbers are honest.
+
+**Check 2 -- the real diagnosis is sharper than "improved but still far below
+gate."** The bottleneck has *shifted*, not just shrunk. Attempt 1's bottleneck
+was misclassification (4/14 correct). Attempt 2's classification is now
+mostly correct (9/14, near the NN-ceiling's 10/14) but RL success stays
+near-zero regardless. Spot-checking distance-to-true-region-cluster against
+RL outcome for all 9 correctly-classified instructions breaks the simple
+"closer wins" pattern attempt 1 found: "lower your arm toward the floor" is
+the *closest* correctly-classified instruction (distance 0.0151) and still
+scores 0.000 RL success, while "shift your gripper toward the right edge"
+at a *farther* distance (0.0200) scores 1.000 on all 3 seeds. RL success is
+concentrated almost entirely in the "reach right" region (5 of 10 total
+nonzero samples across both the held-out and regression-check evals) --
+this is region-dependent policy tolerance, not projection precision alone.
+
+**Check 3 -- does combining vocabularies (84 = 14 original + 70 augmented)
+fix this?** Partially, and not the main gap. It will restore the original
+14's ~1.000 (fixing the accidental replace-not-extend regression), but the
+regression check already shows what an unseen-but-augmented-vocabulary-
+adjacent instruction does under the current projection: ~0.143 mean, still
+dominated by "reach right." Combining vocabularies doesn't change what the
+*held-out* eval measures, so it won't move the 0.095 figure much on its own.
+The MLP's classification (0.643) is already close to the NN-ceiling (0.714)
+-- classification is nearly maxed out for this data regime. The real gap is
+between "correct region" and "close enough for the policy," and that gap is
+uneven across regions.
+
+**Check 4 -- known-risks cross-check.** Region-vs-point lesson (stage 3)
+correctly applied throughout (ground truth via `compute_region_centroid`,
+confirmed from `eval_held_out.py`'s reuse of stage 3's `evaluate_language_goal`).
+Not the SAC eval-collapse signature (literal success stays 1.000 throughout).
+Not the metric-mismatch risk (same frozen encoders throughout). The
+"Projection-layer overfitting to a minimal vocabulary" entry is *partially*
+confirmed -- augmentation fixed classification as predicted, but did not
+close the RL-success gap, because that gap turns out to be a different
+mechanism. **New risk to log:** per-region policy tolerance varies --
+the trained SAC policy's basin of attraction around each region's target
+embedding is nonuniform (some regions, like "reach right," tolerate real
+imprecision; others need near-exact centroid matches), which makes
+classification accuracy a poor predictor of RL success on its own.
+
+**Recommendation to manager -- do NOT mark Done. Run this specific two-part
+experiment for attempt 3, in order:**
+
+**Part A (diagnostic, zero training, run first):** for each of the 7
+regions, take the exact target centroid used in training, inject Gaussian
+noise at several L2 magnitudes (e.g. 0.005, 0.010, 0.015, 0.020, 0.030,
+0.050), and re-run the existing 3 SAC checkpoints against each perturbed
+centroid via the same `evaluate_language_goal` infrastructure already in
+use (no projection, no sentences -- pure policy-tolerance measurement).
+This produces a per-region "how much deviation from the exact centroid can
+the policy tolerate" map and will explain directly why "reach right"
+succeeds under imprecision while "reach down low" doesn't.
+
+**Part B (conditional on Part A's result):**
+- If most regions tolerate >0.020 deviation: the projection itself is still
+  the bottleneck for those regions -- combine the original 14 + augmented
+  70 into one 84-sentence training set (fixing the accidental
+  replace-not-extend bug) and consider more phrasings.
+- If most regions tolerate <0.015: this is a policy-robustness problem, not
+  a data problem -- the fix is retraining the SAC policies with noise
+  injected into the goal embedding during training (domain randomization),
+  not more projection data.
+- If tolerance is genuinely region-dependent (most likely given "reach
+  right" vs. everything else): stage 2's `GoalEncoder` embedding space has
+  nonuniform density across regions -- upstream of both the projection and
+  the RL policy, and neither can fully fix it alone.
+
+Do not spend another round on "more training sentences" alone without first
+running Part A -- attempt 2 already shows classification improvements don't
+translate to RL-success improvements at anywhere near the same rate, so the
+next experiment needs to isolate which layer (projection precision vs.
+policy tolerance vs. embedding-space geometry) actually owns the remaining
+gap before spending effort fixing the wrong one.

@@ -9,7 +9,7 @@ its actual results — no need to open other files for the numbers.
 | 1 | Robot can reach a target given exact coordinates | ✅ Done |
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
 | 3 | Same, but told the target in an English sentence | ✅ Done |
-| 4 | Works with English phrasings it's never seen before | 🔧 Fix confirmed, rebuilding with more training data |
+| 4 | Works with English phrasings it's never seen before | 🔧 Real progress, root cause narrowing — not there yet |
 | 5 | Can change its target mid-task when told something new | ⬜ Not started |
 | 6 | Live, real-time English control, start to finish | ⬜ Not started |
 
@@ -42,11 +42,33 @@ has plenty of signal to place these new sentences correctly — the trained
 converter is actively throwing that signal away by memorizing instead of
 learning the general rule.
 
-**Next step: give the converter more to learn from.** Now building out a
-much larger set of example sentences per direction (was 2, aiming for 10+)
-so it has no choice but to learn the general pattern instead of
-memorizing individual sentences. Will retest on a fresh set of held-out
-sentences once retrained.
+**Retrained with more examples — helped a lot on one measure, barely on
+the one that matters.** Rebuilt the converter's training set from 14
+sentences up to 70 (10 per direction instead of 2), retrained, retested.
+Getting the *direction* right jumped from 4/14 to 9/14 — nearly matching
+the zero-training ceiling test above. But actually reaching the target
+with the robot barely moved: still failing almost every time (up from
+~2% to ~10%, nowhere near acceptable).
+
+**Why doesn't "getting the direction right" translate to "actually
+succeeding"?** A second look at the numbers found something specific: for
+one direction ("move right"), even a fairly imprecise answer still
+succeeds — the robot's tolerance there is forgiving. For every other
+direction, even landing in roughly the right spot isn't precise enough —
+one sentence landed *closer* to the correct spot than the "move right"
+one did, and still failed completely. So the real problem isn't "which
+direction" anymore (that's mostly solved) — it's "how exact does the
+answer need to be, and that required precision is different for every
+direction." More example sentences won't fix that; it needs its own test.
+
+**Next step: measure how forgiving each direction actually is.** Before
+building anything else, artificially nudge the exact known-good answer for
+each of the 7 directions by small amounts and see how much nudging the
+robot can tolerate before it starts failing — zero retraining needed,
+reuses everything already built. This tells us cleanly whether the fix is
+"more example sentences," "make the robot more tolerant to small target
+errors," or something about how directions are represented in the first
+place. That test is running now.
 
 **3 demo clips are in `demos/`** — baseline success, the original broken
 failure, and a real success once the eval was fixed — each labeled with
@@ -139,7 +161,7 @@ Full story with all 4 attempts and independent checks: `experiments/03_language_
 </details>
 
 <details>
-<summary><b>Stage 4 — Works with sentences it's never seen before</b> ❌ Failed, cause confirmed by independent review</summary>
+<summary><b>Stage 4 — Works with sentences it's never seen before</b> 🔧 In progress — real gains made, root cause still narrowing</summary>
 
 **Setup:** wrote 14 brand-new test sentences (2 per region) that were
 never used to train the converter — genuinely different wording, e.g.
@@ -189,19 +211,38 @@ still start out close together before the converter touches them. The
 language model underneath is fine; the small trained converter on top of
 it is where the problem gets introduced.
 
-**Next fix, in order:**
-1. **Quick free test first (running now):** skip the trained converter
-   entirely for a moment — for a new sentence, just find whichever of the
-   14 known sentences it's closest to and borrow that answer. If this
-   simple, no-training approach already does better than the trained
-   converter on new sentences, that proves the diagnosis and clears the way
-   for step 2 with confidence.
-2. **The actual fix:** give the converter many more example sentences per
-   direction (not just 2) so it has no choice but to learn the general
-   pattern instead of 14 individual answers.
-3. Anything fancier is being held back until steps 1-2 are tried, since the
-   simplest explanation (not enough teaching examples) already fits
-   everything observed.
+**Step 1 (zero-training sanity check): confirmed the diagnosis.** Skipping
+the trained converter entirely and just borrowing the answer from whichever
+known sentence a new one resembles most got 10/14 right, vs. the trained
+converter's 4/14. Clear proof the raw language understanding has the
+signal — the trained converter was throwing it away.
+
+**Step 2 (give it more examples): helped the right-direction question a
+lot, barely helped the actual task.** Retrained on 70 example sentences
+(10 per direction instead of 2). Result: picking the right *direction* for
+a new sentence jumped from 4/14 to 9/14 — almost matching the zero-training
+ceiling test. But the robot actually reaching the target for these new
+sentences barely improved: ~2% before, ~10% now. Still a clear fail.
+
+**Why more examples didn't fix the actual task:** a closer look found the
+problem changed shape. It's no longer mostly "wrong direction" — it's now
+mostly "right direction, but not precise enough," and how much precision
+each direction needs turns out to vary a lot. One sentence landed *closer*
+to its correct target than another sentence did, yet the closer one failed
+completely while the farther one succeeded every time. One direction
+("move right") seems to be forgiving of an imprecise answer; the others
+aren't. More example sentences won't fix that kind of gap — we need to
+measure how forgiving each direction actually is before picking the next
+fix.
+
+**Step 3 (running now): measure how forgiving each direction is.**
+Deliberately feed the robot slightly-wrong versions of the exact correct
+answer for each of the 7 directions (small nudges, increasing size) and see
+where each direction starts failing — zero retraining, reuses everything
+already built. This will show clearly whether the next fix should be (a)
+even more example sentences, (b) making the robot itself more tolerant of
+small target errors, or (c) something upstream in how directions are
+represented that neither of those would fix.
 
 Full detail: `experiments/04_open_vocabulary/report.md`
 
