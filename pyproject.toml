@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Staged research repo: goal-conditioned RL with a continuous goal space derived from frozen language embeddings"
 readme = "README.md"
 authors = [
-    { name = "EoinMcUF", email = "eoin@urbanfox.io" }
+    { name = "eoin-james", email = "eoinmc.james@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
