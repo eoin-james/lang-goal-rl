@@ -1,6 +1,6 @@
 # Agent roster — lang-goal-rl
 
-Three project-specific specialists. Dispatched by the main-loop manager —
+Four project-specific specialists. Dispatched by the main-loop manager —
 never invoked by name; read the file and paste its body into a
 `general-purpose` Agent call, since a fresh agent has no memory of this
 repo's history.
@@ -10,6 +10,7 @@ repo's history.
 | `rl-builder.md` | `src/lang_goal_rl/` | Implements reusable components (encoders, wrappers, metrics), TDD |
 | `experiment-runner.md` | `experiments/` | Writes/runs stage scripts, reports raw metrics, makes no judgment calls |
 | `results-reviewer.md` | read-only | Independently, skeptically verifies the runner's result against `ROADMAP.md`'s proof gate before anything gets marked Done |
+| `thesis-research-agent.md` | `LITERATURE.md` | Maintains the project's bibliography — cites the real papers behind each stage's "Reuse" target, does fresh research when a stage needs grounding |
 
 ## Flow per stage
 
