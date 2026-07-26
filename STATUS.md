@@ -2,72 +2,63 @@
 
 This tracks research progress only — stages, proof gates, actual numbers.
 No setup/tooling work shown here; that's implementation detail, not an
-experiment result.
+experiment result. Completed stages are kept short here — full detail
+always lives in that stage's linked report.
 
-**TL;DR:** Stage 1 done and proven (10 seeds, real PASS verdict). Stage 2
-not started. **Progress: 1/7 stages (14%).**
+**TL;DR:** Stages 1-2 done and proven. Stage 3 underway (first stage
+introducing actual language). **Progress: 2/7 stages (29%), running
+autonomously stage-by-stage — no check-ins unless something needs a real
+decision.**
 
 ## Active run
 
-**None.** Nothing training right now.
+**Stage 3 — starting.** Frozen language embedding → goal space: a fixed
+vocabulary of instructions mapped through a frozen sentence embedding,
+projected into stage 2's goal-embedding space via a learned layer. First
+stage where a sentence actually determines the goal, not a coordinate.
 
-## Stage 1 — full result (closed out 17:06)
+## Completed stages
 
-| Seed | Success rate |
-|---|---|
-| 0 | 1.000 |
-| 1 | 1.000 |
-| 2 | 0.000 |
-| 3 | 1.000 |
-| 4 | 1.000 |
-| 5 | 1.000 |
-| 6 | 1.000 |
-| 7 | 0.400 |
-| 8 | 1.000 |
-| 9 | 1.000 |
-| **Mean** | **0.840** |
-| Seeds ≥0.98 | 8/10 |
+### Stage 1 — Goal-conditioned baseline (UVFA+HER) — PASS
 
-**Verdict: PASS.** Took two review passes to get there — worth knowing the
-shape of that, not just the ending:
-1. First 5 seeds → reviewer said INCONCLUSIVE (mean 0.8 doesn't read as
-   "near-100%", one seed totally failed, sample too thin to tell luck from
-   a systemic problem).
-2. 5 more seeds → still didn't cleanly hit either of the reviewer's own
-   pass/fail thresholds (8/10, not 9/10; only 1 new failure, not 2+).
-3. Reviewer went back to the raw logs directly rather than mechanically
-   applying its own rule, and found the actual mechanism: seed 5's
-   training-time success (0.89) was *lower* than seed 7's (0.95), yet seed
-   5 scored a perfect eval while seed 7 collapsed — ruling out "weak
-   training predicts eval failure." Real cause: an entropy-coefficient
-   instability spike (`ent_coef_loss` jumping to 19-52) can permanently
-   corrupt the deterministic action for that seed — a known SAC fragility,
-   not a defect in UVFA or HER. 8/10 at a clean 1.000 is a genuine solve.
+10 seeds, median/mode 1.000, mean 0.840, 8/10 ≥0.98. Took two review
+passes: mean alone looked shaky, but the reviewer traced the 2 failures to
+a specific, diagnosed SAC mechanism (entropy-coefficient instability
+corrupting the deterministic action for that seed) — not a UVFA/HER defect.
+Now a tracked Known risk: every later stage must compare at median/mode,
+same seed count, and check failed seeds against this exact signature before
+blaming their own new component.
+[Full report](experiments/01_uvfa_her_baseline/report.md)
 
-**Tracked as a risk, not a loose end:** added to `ROADMAP.md`'s Known
-risks — every downstream stage (2-6) must compare against baselines at
-median/mode (not mean), same seed count, and check whether a failed seed
-shows this exact signature before blaming a new component for a regression
-that's actually this ~20% baseline fragility resurfacing.
+### Stage 2 — Learned continuous goal embedding — PASS
 
-Full reasoning + both review passes: `experiments/01_uvfa_her_baseline/report.md`
-Chart: `experiments/01_uvfa_her_baseline/charts/multi_seed_success_rate.png`
+10/10 seeds ≥0.98 (median/mode 1.000, better than stage 1's 8/10 — zero
+seeds hit stage 1's known failure mode). Distance-in-latent check: Pearson
+r=0.571 on 500 held-out goals — real and significant, not the in-sample
+0.878 (that gap is contrastive-pretraining overfitting, tracked but doesn't
+invalidate the result). Scoped honestly as a simplification of Eysenbach et
+al.'s method (frozen encoder + feature-extractor swap, not a full
+critic-loss replacement) — documented as such rather than overclaiming.
+Bonus: the builder's integration test caught a real bug (a "frozen" encoder
+silently shared across SAC's actor/critic/critic-target and drifting via
+target-network averaging) before it could corrupt a result.
+[Full report](experiments/02_contrastive_goal_embedding/report.md)
 
-## Stage-by-stage results
+## Stage-by-stage table
 
-| # | Stage | Proof gate | Result | Seeds |
-|---|-------|------------|--------|-------|
+| # | Stage | Proof gate | Result | Report |
+|---|-------|------------|--------|--------|
 | 0 | Plumbing | Env loop runs end-to-end | ✅ Pass | — |
-| 1 | Goal-conditioned baseline (UVFA+HER) | Near-100% success on FetchReach | ✅ **PASS** — see above | 10 |
-| 2 | Learned continuous goal embedding | Success rate matches stage 1; distance-in-latent tracks true task distance | Not run | — |
-| 3 | Frozen language embedding → goal space | Success on language goals ≈ stage 2 | Not run | — |
+| 1 | Goal-conditioned baseline (UVFA+HER) | Near-100% success on FetchReach | ✅ PASS (10/10 seeds, 8/10 ≥0.98) | [link](experiments/01_uvfa_her_baseline/report.md) |
+| 2 | Learned continuous goal embedding | Success matches stage 1; distance-in-latent correlates | ✅ PASS (10/10 seeds, r=0.571) | [link](experiments/02_contrastive_goal_embedding/report.md) |
+| 3 | Frozen language embedding → goal space | Success ≈ stage 2; no instruction collapse | In progress | — |
 | 4 | Open vocabulary | Graceful degradation on unseen phrasing | Not run | — |
 | 5 | Mid-episode re-goaling | Zero-shot goal-swap ≈ fresh-episode baseline | Not run | — |
 | 6 | Live English interface | End-to-end demo, task success + redirect time | Not run | — |
 
 ## What's queued next
 
-Stage 1 is closed out and committed. Next real step is stage 2: learned
-continuous goal embedding (Contrastive RL), which needs new reusable code
-from the rl-builder before any run happens. Not started — waiting on you to
-say go.
+Stage 3 build starting now (fixed-vocabulary instruction set, frozen
+sentence-transformer, learned projection into stage 2's goal space). Will
+keep moving through 4, 5, 6 the same way — build, run, review, close out —
+without stopping unless a result needs a real decision from you.

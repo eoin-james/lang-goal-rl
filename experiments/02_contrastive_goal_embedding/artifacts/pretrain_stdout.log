@@ -1,0 +1,14 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+collected goal pool: 2000 points, seed=0
+pretrain step=0 info_nce_loss=5.4780
+pretrain step=200 info_nce_loss=2.4455
+pretrain step=400 info_nce_loss=2.2569
+pretrain step=600 info_nce_loss=2.0382
+pretrain step=800 info_nce_loss=1.9483
+pretrain step=1000 info_nce_loss=1.9364
+pretrain step=1200 info_nce_loss=1.8332
+pretrain step=1400 info_nce_loss=1.8581
+pretrain step=1600 info_nce_loss=1.8487
+pretrain step=1800 info_nce_loss=1.8757
+pretrain step=1999 info_nce_loss=1.7018
+saved pretrained encoder to /Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/artifacts/goal_encoder.pt
