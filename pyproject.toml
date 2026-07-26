@@ -1,0 +1,14 @@
+[project]
+name = "lang-goal-rl"
+version = "0.1.0"
+description = "Staged research repo: goal-conditioned RL with a continuous goal space derived from frozen language embeddings"
+readme = "README.md"
+authors = [
+    { name = "EoinMcUF", email = "eoin@urbanfox.io" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
