@@ -1,0 +1,53 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/checkpoints/seed_1.zip (no new training, seed=1)
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.010 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.015 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.020 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="center" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="center" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach forward" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach forward" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach forward" magnitude=0.010 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach forward" magnitude=0.015 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach forward" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach forward" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach forward" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach back" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach back" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach back" magnitude=0.010 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach back" magnitude=0.015 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach back" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach back" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach back" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach left" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach left" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach left" magnitude=0.010 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach left" magnitude=0.015 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach left" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach left" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach left" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach right" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach right" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach right" magnitude=0.010 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach right" magnitude=0.015 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach right" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach right" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach right" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.010 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.015 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach up high" magnitude=0.030 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach up high" magnitude=0.050 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach down low" magnitude=0.000 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach down low" magnitude=0.005 over 50 episodes
+tolerance_success_rate=1.000 seed=1 region="reach down low" magnitude=0.010 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach down low" magnitude=0.015 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach down low" magnitude=0.020 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach down low" magnitude=0.030 over 50 episodes
+tolerance_success_rate=0.000 seed=1 region="reach down low" magnitude=0.050 over 50 episodes

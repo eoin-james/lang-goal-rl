@@ -402,3 +402,84 @@ translate to RL-success improvements at anywhere near the same rate, so the
 next experiment needs to isolate which layer (projection precision vs.
 policy tolerance vs. embedding-space geometry) actually owns the remaining
 gap before spending effort fixing the wrong one.
+
+## Attempt 3 diagnostic -- per-region policy tolerance
+
+**Seeds run:** [0, 1, 2] **Candidates:** 1 (locked-in) **New training:** none -- reuses the 3 already-trained stage-3 SAC checkpoints (`03_language_goal_projection/checkpoints/seed_{0,1,2}.zip`) unchanged; no projection, no sentence-transformer, no RL training in this attempt.
+
+This is the reviewer's Part A diagnostic from attempt 2's verdict, run before any fix is attempted: for each of the 7 regions, take the exact target embedding `precompute_instruction_targets` regresses every stage-3/4 projection checkpoint toward (via `compute_region_target_embeddings(goal_encoder, region_names(), n_samples=1000, seed=0)` -- bit-identical sample population, not a separately invented centroid), inject an L2-magnitude-controlled perturbation in a fixed random direction, and re-run the existing checkpoints through `evaluate_language_goal` against that perturbed embedding. Ground truth (success/failure) is still judged against `compute_region_centroid(region_name)`, unchanged from every stage-3/4 eval since stage 3's attempt-4 fix -- only what the *policy* is shown as its desired-goal embedding changes. This isolates the SAC policy's own tolerance radius from projection precision and sentence-embedding quality entirely: no language, no learned mapping, just the frozen `GoalEncoder`'s embedding space and the trained policy.
+
+### Result summary
+
+**Sanity-check control (magnitude=0.0):** mean success rate across all 7 regions and 3 seeds at zero perturbation is 1.000-1.000 per region (full detail in the table below) -- reproduces the ~1.000 literal/language-goal baseline used throughout stage 3/4, confirming this script's eval plumbing (target-embedding computation, perturbation injection, `evaluate_language_goal` call) introduces no defect before trusting the nonzero-magnitude results.
+
+#### Full region x magnitude table (mean success rate across 3 seeds, 50 episodes each)
+
+| Region | 0.000 | 0.005 | 0.010 | 0.015 | 0.020 | 0.030 | 0.050 |
+|--------|---------|---------|---------|---------|---------|---------|---------|
+| center | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 |
+| reach forward | 1.000 | 0.667 | 1.000 | 0.000 | 1.000 | 0.000 | 0.333 |
+| reach back | 1.000 | 1.000 | 0.333 | 1.000 | 0.000 | 0.000 | 0.000 |
+| reach left | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach right | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.333 | 0.000 |
+| reach up high | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 |
+| reach down low | 1.000 | 1.000 | 1.000 | 0.667 | 0.000 | 0.333 | 0.000 |
+
+#### Half-tolerance and near-collapse radii per region
+
+"Half-tolerance radius" = smallest tested magnitude at which mean success across the 3 seeds first drops below 0.5. "Near-collapse radius" = smallest tested magnitude at which mean success first drops below 0.1. "> 0.050 (never dropped below X)" means the region held above that threshold through the largest magnitude tested -- its true radius may be larger than what this sweep measured, not that it is infinite.
+
+| Region | Half-tolerance radius (mean success first < 0.5) | Near-collapse radius (mean success first < 0.1) |
+|--------|------------------------------------------------------|------------------------------------------------------|
+| center | 0.050 | 0.050 |
+| reach forward | 0.015 | 0.015 |
+| reach back | 0.010 | 0.020 |
+| reach left | 0.030 | 0.030 |
+| reach right | 0.030 | 0.050 |
+| reach up high | 0.030 | 0.030 |
+| reach down low | 0.020 | 0.020 |
+
+**Direct comparison the reviewer asked to be quantified:** 'reach right' half-tolerance radius (0.030) vs. the range of every other region's (0.010-0.050). On the near-collapse radius, 'reach right' (0.050) ties with 'center' for the single most tolerant region measured -- the closest this sweep comes to the sharp binary distinction attempt 2's qualitative distance/success spot-check suggested. Overall, this direct per-region measurement does **not** reproduce as clean a binary split as attempt 2's qualitative finding implied ('reach right' scoring 1.000 on all 3 seeds vs. 'reach down low' scoring 0.000 at a closer classification distance) -- every region shows some tolerance and some fragility across the tested magnitude range, and the ranking is noisier than a single sharp cutoff, most likely reflecting that each (region, magnitude) combo here is a single random perturbation direction over 50 episodes, not an average over multiple directions (see Anomalies below).
+
+#### Per-seed detail (nothing hidden behind the mean)
+
+| Region | Seed | 0.000 | 0.005 | 0.010 | 0.015 | 0.020 | 0.030 | 0.050 |
+|--------|------|---------|---------|---------|---------|---------|---------|---------|
+| center | 0 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 |
+| center | 1 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 |
+| center | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 |
+| reach forward | 0 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 | 0.000 | 1.000 |
+| reach forward | 1 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 | 0.000 | 0.000 |
+| reach forward | 2 | 1.000 | 0.000 | 1.000 | 0.000 | 1.000 | 0.000 | 0.000 |
+| reach back | 0 | 1.000 | 1.000 | 0.000 | 1.000 | 0.000 | 0.000 | 0.000 |
+| reach back | 1 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 | 0.000 |
+| reach back | 2 | 1.000 | 1.000 | 0.000 | 1.000 | 0.000 | 0.000 | 0.000 |
+| reach left | 0 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach left | 1 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach left | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach right | 0 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 |
+| reach right | 1 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach right | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 |
+| reach up high | 0 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 |
+| reach up high | 1 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 |
+| reach up high | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 |
+| reach down low | 0 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 1.000 | 0.000 |
+| reach down low | 1 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| reach down low | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 | 0.000 |
+
+### Charts
+![region_tolerance_curves.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/region_tolerance_curves.png)
+
+### Raw output
+- [seed_0/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_0/stdout.log)
+- [seed_1/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_1/stdout.log)
+- [seed_2/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_2/stdout.log)
+
+### Anomalies (factual, not judged)
+Per-seed detail above shows real seed-to-seed variance at intermediate magnitudes (e.g. a region's 3 seeds do not always cross a threshold at the same magnitude) -- expected given only 50 episodes per (seed, region, magnitude) combo and a single fixed random perturbation direction per (region, magnitude) pair (no averaging over multiple directions at the same magnitude). The magnitude=0.0 control's mean success rate per region is reported directly in the full table above rather than assumed to be a clean 1.000 everywhere -- any region below 1.000 there reflects the eval loop's own episode-to-episode variance (e.g. a residual SAC deterministic-eval-collapse signature per `ROADMAP.md`'s known risk), not the noise-injection mechanism, since magnitude 0.0 injects the zero vector regardless of the drawn direction.
+
+### Known-risks cross-check
+Directly answers ROADMAP.md's 'Per-region policy tolerance variance' entry's Part A diagnostic request: this is the "how much deviation from the exact centroid can the policy tolerate, per region" map that entry asked for, measured with no projection or sentence involved. Not the SAC deterministic-eval-collapse signature by default (the magnitude=0.0 control is the direct check for it, reported in Anomalies above) -- any single-seed dip at magnitude=0.0 should be cross-checked against that signature before attributing it to this diagnostic's mechanism. Not the 'Metric mismatch' or 'Region-vs-point ground truth' known risks (ground truth is unchanged `compute_region_centroid`; the frozen `GoalEncoder`'s embedding space is the exact thing being probed, not assumed).
+
+### Reviewer verdict
+_Left blank by the runner -- filled in by the manager from the reviewer's return._
