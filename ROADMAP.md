@@ -99,3 +99,14 @@ numbers, charts, and any candidate comparison live in the linked report._
   See `experiments/04_open_vocabulary/report.md`'s reviewer verdict for the
   full diagnosis and recommended fix ordering (NN-interpolation ceiling test
   → data augmentation → smoothness regularization only if still needed).
+  **Ceiling test result (confirms diagnosis):** a zero-training
+  nearest-neighbor baseline (blend the k nearest of the 14 training
+  sentences' targets in raw 384-dim space, bypassing the learned MLP
+  entirely) scores 0.714 (k=1) vs. the trained MLP's 0.286 on the identical
+  14 held-out phrases — 6 instructions flip from wrong to correct with zero
+  reverse flips at k=1. This confirms the raw sentence-embedding space
+  already carries plenty of region-clustering signal; the learned MLP is
+  actively discarding it by memorizing 14 points instead of learning a
+  generalizing rule. Proceeding to data augmentation (more diverse training
+  phrasings per region) as the fix, per the reviewer's pre-registered
+  decision rule.

@@ -9,7 +9,7 @@ its actual results — no need to open other files for the numbers.
 | 1 | Robot can reach a target given exact coordinates | ✅ Done |
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
 | 3 | Same, but told the target in an English sentence | ✅ Done |
-| 4 | Works with English phrasings it's never seen before | ❌ Failed (confirmed) — memorized 14 sentences, fix identified |
+| 4 | Works with English phrasings it's never seen before | 🔧 Fix confirmed, rebuilding with more training data |
 | 5 | Can change its target mid-task when told something new | ⬜ Not started |
 | 6 | Live, real-time English control, start to finish | ⬜ Not started |
 
@@ -33,14 +33,20 @@ mean similar things do still start out close together before the
 converter processes them. The converter is where the problem is introduced,
 not the language model underneath it.
 
-**Next step — a cheap sanity check before retraining anything.** Before
-spending time gathering more training sentences, first try answering new
-sentences a completely different way: instead of a trained converter, just
-look up which of the 14 known sentences a new one is most similar to and
-borrow its answer directly (no training at all). If that simple approach
-already beats the trained converter on the new sentences, it proves the
-diagnosis is right and the real fix is "give it more examples to learn
-from," not something more exotic. That test is running now.
+**Sanity check result: confirmed, and it's a big gap.** Tried answering new
+sentences a completely different way — no trained converter at all, just
+"which of the 14 known sentences is this most like, borrow its answer."
+That zero-training approach got 10/14 right vs. the trained converter's
+4/14. That's a decisive result: the raw language understanding already
+has plenty of signal to place these new sentences correctly — the trained
+converter is actively throwing that signal away by memorizing instead of
+learning the general rule.
+
+**Next step: give the converter more to learn from.** Now building out a
+much larger set of example sentences per direction (was 2, aiming for 10+)
+so it has no choice but to learn the general pattern instead of
+memorizing individual sentences. Will retest on a fresh set of held-out
+sentences once retrained.
 
 **3 demo clips are in `demos/`** — baseline success, the original broken
 failure, and a real success once the eval was fixed — each labeled with

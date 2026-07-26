@@ -112,3 +112,39 @@ Region-vs-point lesson (stage 3) correctly applied from the start -- not repeate
 3. Only add a smoothness/neighbor-preserving regularization term *after* (2), if augmentation alone isn't enough -- with only 14 points there isn't enough data to define meaningful neighborhoods for such a term to regularize over yet.
 
 **Do not treat this as a repeat of stage 3's pattern** -- stage 3's bug was in the eval protocol, not the model; this one is a real generalization failure in the model itself, and the fix is data, not a one-line eval change.
+
+### Part 4 -- Nearest-neighbor-interpolation ceiling test (zero-training diagnostic, reviewer-requested)
+
+Per the reviewer's "Recommended next step (1)" above: before committing to a data-augmentation fix, check whether the raw `all-MiniLM-L6-v2` embedding space itself carries the region-clustering signal that `LanguageGoalProjection`'s trained MLP is throwing away. `nearest_neighbor_projection.py` (new, shipped by the rl-builder for this test) bypasses the MLP entirely: for each held-out paraphrase, it takes a distance-weighted blend of the `k` nearest of the 14 training instructions' fixed region-centroid targets, computed directly in the frozen sentence-transformer's raw 384-dim space -- no learned weights, no training loop. The blended 16-dim output is then classified by nearest region centroid, using the identical `(n_samples=1000, seed=0)` centroid computation stage 3/4 used throughout, so this is an apples-to-apples comparison against Part 1's 28.6% (4/14) MLP figure. `k=1, 3, 5` were all tried and are all reported below -- not cherry-picked to whichever looked best.
+
+| k | Accuracy | vs. MLP Part-1 (0.286, 4/14) |
+|---|----------|-------------------------------|
+| 1 | 0.714 (10/14) | +0.429 |
+| 3 | 0.500 (7/14) | +0.214 |
+| 5 | 0.357 (5/14) | +0.071 |
+
+Every k tried beat the MLP's 28.6% baseline; k=1 (pure 1-nearest-neighbor, no blending) scored highest.
+
+**Instructions that flipped vs. the MLP's Part-1 classification:**
+
+| Instruction | MLP (Part 1) | k=1 | k=3 | k=5 |
+|---|---|---|---|---|
+| settle into the middle of the workspace | WRONG | correct | correct | WRONG |
+| return your hand to a neutral position | WRONG | WRONG | WRONG | WRONG |
+| push your arm out in front of you | WRONG | WRONG | WRONG | WRONG |
+| extend forward away from your body | WRONG | WRONG | correct | WRONG |
+| draw your hand back toward yourself | WRONG | correct | WRONG | WRONG |
+| retreat away from the front of the workspace | WRONG | WRONG | WRONG | WRONG |
+| swing your arm over to the left | WRONG | correct | correct | correct |
+| shift your gripper toward the left edge | WRONG | correct | correct | correct |
+| swing your arm over to the right | WRONG | correct | correct | WRONG |
+| shift your gripper toward the right edge | correct | correct | WRONG | WRONG |
+| raise your arm as high as it will go | correct | correct | WRONG | WRONG |
+| extend upward toward the ceiling | correct | correct | WRONG | correct |
+| lower your arm toward the floor | WRONG | correct | correct | correct |
+| drop your gripper down low | correct | correct | correct | correct |
+
+At k=1, 6 instructions flip WRONG (MLP) -> correct (NN); no instruction flips the other direction, so k=1's higher aggregate accuracy is a strict improvement per-instruction, not offset by new losses elsewhere. At k=3 and k=5, some previously-correct MLP classifications (e.g. "shift your gripper toward the right edge", "raise your arm as high as it will go") flip to WRONG under blending -- averaging in centroids further from the query's true region evidently hurts those specific instructions even as it helps others.
+
+**Script:** `experiments/04_open_vocabulary/nn_ceiling_test.py`
+**Raw output:** [nn_ceiling_test_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/nn_ceiling_test_stdout.log)
