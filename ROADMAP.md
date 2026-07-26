@@ -22,7 +22,7 @@ in the final writeup as future work, not as an unproven claim.
 | 1 | Goal-conditioned baseline (UVFA + HER) | SB3 `SAC` + `HerReplayBuffer`, same env | multi-goal conditioning on literal xyz goal (`experiments/01_uvfa_her_baseline/train.py`) | Near-100% success rate over held-out eval episodes on FetchReach | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** | [report](experiments/01_uvfa_her_baseline/report.md) |
 | 2 | Learned continuous goal embedding | Eysenbach et al. Contrastive RL architecture (scoped adaptation — frozen encoder pretrained via InfoNCE, not a full critic-loss replacement) | swap literal goal for a learned latent (`experiments/02_contrastive_goal_embedding/`) | Success rate matches stage-1 baseline within tolerance; distance-in-latent correlates with true task distance | **Done (10/10 seeds ≥0.98, r=0.571 held-out distance correlation)** | [report](experiments/02_contrastive_goal_embedding/report.md) |
 | 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
-| 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | Not started | — |
+| 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **FAIL (3 seeds) — held-out RL success 0.024 mean/0.000 median vs. 1.000 training-vocab baseline; diagnosed as projection-layer overfitting to a 14-example vocabulary, not an eval-protocol bug. See Known risks.** | [report](experiments/04_open_vocabulary/report.md) |
 | 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | Not started | — |
 | 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
 
@@ -76,3 +76,26 @@ numbers, charts, and any candidate comparison live in the linked report._
   deliberately — don't let this recur by default. See
   `experiments/03_language_goal_projection/report.md`'s Attempt 4 section
   and its reviewer verdict for the full geometric analysis.
+- **Projection-layer overfitting to a minimal vocabulary (confirmed stage 4)**:
+  `LanguageGoalProjection` is a ~25,600-parameter MLP (384→64→16) trained via
+  direct MSE regression on exactly 14 fixed input/output pairs (2 sentences
+  per region). That is enough capacity to memorize the 14 points exactly with
+  zero pressure to generalize between them. Evidence: a PCA of training vs.
+  held-out projected points shows the two populations occupying almost
+  entirely separate regions of the 16-dim output space (the visual signature
+  of memorization, not a smooth mapping); held-out semantic-neighbor accuracy
+  is only 2x random chance (28.6% vs. 14.3%) and RL success collapses to
+  ~2% even though the frozen sentence-transformer's raw 384-dim space does
+  preserve some semantic proximity for held-out phrasings (ruling out "the
+  encoder itself can't tell these apart" as the cause). Being classified to
+  the nearest-correct region is *necessary but not sufficient* for RL
+  success — the projected point must also land within FetchReach's tight
+  0.05m radius of the true centroid, and even correctly-classified held-out
+  phrases often don't. **Any stage that trains a mapping (sentence embedding
+  → goal space, or similar) on a small, fixed, closed vocabulary must budget
+  for enough diverse examples per class to force generalization — a handful
+  of points per class is a memorization risk, not a generalization
+  guarantee, regardless of how good the underlying frozen embeddings are.**
+  See `experiments/04_open_vocabulary/report.md`'s reviewer verdict for the
+  full diagnosis and recommended fix ordering (NN-interpolation ceiling test
+  → data augmentation → smoothness regularization only if still needed).
