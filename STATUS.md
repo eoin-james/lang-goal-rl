@@ -235,14 +235,34 @@ aren't. More example sentences won't fix that kind of gap — we need to
 measure how forgiving each direction actually is before picking the next
 fix.
 
-**Step 3 (running now): measure how forgiving each direction is.**
-Deliberately feed the robot slightly-wrong versions of the exact correct
-answer for each of the 7 directions (small nudges, increasing size) and see
-where each direction starts failing — zero retraining, reuses everything
-already built. This will show clearly whether the next fix should be (a)
-even more example sentences, (b) making the robot itself more tolerant of
-small target errors, or (c) something upstream in how directions are
-represented that neither of those would fix.
+**Step 3 result: messier than expected, but still useful.** Deliberately
+fed the robot slightly-wrong versions of the correct answer for each of
+the 7 directions, at increasing amounts of "wrongness," to see where each
+one starts failing. The clean story we were hoping for ("direction X is
+just more forgiving than direction Y") didn't hold up — the results bounced
+around too much to trust a simple "this direction tolerates more error than
+that one" ranking. Digging into why: each test only tried *one* random way
+of being wrong at each amount, so what looked like "more wrongness breaks
+it" was often actually just "this particular way of being wrong happened to
+break it, a different way at the same amount wouldn't have." In other
+words: it's not just *how far off* the answer is that matters, it's *which
+direction* it's off in — and that's a more specific, more useful thing to
+know than what we set out to measure.
+
+**So: not a wasted test, just not the one we thought we were running.**
+Rather than run a bigger, more careful version of that same test (which
+would only sharpen the measurement, not get us closer to a working system),
+the next step goes straight at the real question: is the trained converter
+itself introducing this "wrong direction" problem, or is it inherent to the
+robot? Testing this by skipping the trained converter one more time — using
+the simple lookup-the-closest-known-answer approach from step 1, but now
+with all 84 known sentences (14 original + 70 new) — and seeing if it gets
+the robot to actually succeed noticeably more than the trained converter's
+current ~10%. If yes, the trained converter is the problem and can likely
+just be replaced with this simpler lookup approach. If no, the problem is
+in the robot's own precision requirements, not the sentence-to-code step,
+and the next fix looks completely different (training the robot to be more
+forgiving of small target errors). That test is running now.
 
 Full detail: `experiments/04_open_vocabulary/report.md`
 

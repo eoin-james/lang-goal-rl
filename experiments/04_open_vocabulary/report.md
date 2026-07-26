@@ -482,4 +482,68 @@ Per-seed detail above shows real seed-to-seed variance at intermediate magnitude
 Directly answers ROADMAP.md's 'Per-region policy tolerance variance' entry's Part A diagnostic request: this is the "how much deviation from the exact centroid can the policy tolerate, per region" map that entry asked for, measured with no projection or sentence involved. Not the SAC deterministic-eval-collapse signature by default (the magnitude=0.0 control is the direct check for it, reported in Anomalies above) -- any single-seed dip at magnitude=0.0 should be cross-checked against that signature before attributing it to this diagnostic's mechanism. Not the 'Metric mismatch' or 'Region-vs-point ground truth' known risks (ground truth is unchanged `compute_region_centroid`; the frozen `GoalEncoder`'s embedding space is the exact thing being probed, not assumed).
 
 ### Reviewer verdict
-_Left blank by the runner -- filled in by the manager from the reviewer's return._
+
+**Verdict: INCONCLUSIVE** (as a tolerance-radius measurement -- but it points directly at the next experiment)
+
+**Check 1 -- number verification.** Every per-seed value in the region x
+magnitude table matches the raw logs exactly (all 147 combinations checked).
+No arithmetic errors.
+
+**Check 2 -- is the diagnostic itself trustworthy?** No, not for the
+"per-region radius" framing it was built to produce. The root cause is in
+the perturbation-direction sampling: `perturbation_vector` draws one random
+direction per `(region_index, magnitude_index)` pair, so magnitude 0.015 and
+magnitude 0.020 for the same region get two *unrelated* random directions,
+not two magnitudes probed along a consistent axis. All 3 SAC seeds see the
+identical perturbed embedding at each cell and agree with each other
+(e.g. "reach forward" at 0.015: all 3 seeds score 0.000; at 0.020: all 3
+score 1.000) -- that unanimous agreement proves the *direction drawn*, not
+the magnitude, is what's deciding pass/fail in the non-monotonic cells. 4 of
+7 regions (reach forward, reach back, reach up high, reach down low) show
+non-monotonic curves, 2 of those (reach forward, reach up high) show a full
+recovery to 1.000 *after* an earlier collapse -- that is not consistent with
+"tolerance radius" as a well-defined scalar per region. The "half-tolerance"
+and "near-collapse" summary numbers derived from this table are not
+reliable enough to act on directly.
+
+**Check 3 -- does this refute the nonuniform-tolerance theory, or just show
+the measurement was too noisy?** Neither cleanly. Real signal exists (a 6x
+range in the magnitude at first failure across regions), so tolerance does
+vary -- but the *specific* claim from attempt 2's reviewer ("reach right is
+uniquely forgiving") does not reproduce: "center" is actually the most
+tolerant region on both summary statistics, and "reach right" is mid-pack.
+The sharper, better-supported conclusion: **tolerance is direction-sensitive
+within a region, not just magnitude-sensitive between regions** -- a
+projection landing 0.020 away from centroid in a "good" direction can
+succeed where one landing 0.015 away in a "bad" direction fails. "Closer to
+centroid" alone is an incomplete predictor of RL success; direction matters
+at least as much as distance.
+
+**Check 4 -- known-risks cross-check.** The "Per-region policy tolerance
+variance" entry (logged after attempt 2) is directionally right but
+overstates region-level stability -- it should be corrected to reflect that
+tolerance is direction-dependent within a region, not purely a per-region
+constant, and that this diagnostic's single-direction-per-cell methodology
+can only support that softer claim, not clean per-region radii.
+
+**Recommendation to manager -- do not run a cleaner (multi-direction-averaged)
+version of this same diagnostic next.** It would sharpen the *characterization*
+of tolerance but wouldn't move stage 4 toward passing. Instead, run the
+**single cheapest experiment that both diagnoses and potentially fixes the
+problem in one shot**: swap the trained MLP projection out entirely and
+measure held-out RL success using the already-built, zero-training k=1
+nearest-neighbor projection (`nearest_neighbor_projection.py`, which already
+beat the MLP on classification: 0.714 vs. 0.643) as the inference-time
+mapping, using the combined 84-sentence reference set (original 14 +
+augmented 70 -- fixing attempt 2's accidental replace-not-extend bug in the
+same step, since NN lookup needs no training and can use every known
+sentence as a reference point at once). The k=1 NN returns an *exact known
+training target*, never a learned, potentially direction-distorted
+approximation -- if it substantially beats the MLP's 0.095 RL success, that
+proves the MLP's own directional distortion (not policy tolerance) was the
+real bottleneck, and the fix becomes trivial: use NN lookup instead of the
+MLP. If it scores similarly to the MLP (~0.1), the bottleneck is genuinely
+policy-side and the next move is domain-randomization retraining of the SAC
+policies with goal-embedding noise injected during training. Either outcome
+is decisive and cheap (zero training either way) -- do this before spending
+another round on tolerance measurement or more projection training data.
