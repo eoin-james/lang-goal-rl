@@ -24,9 +24,19 @@ language-embedding-derived goal space.
 
 Layout:
 - `src/lang_goal_rl/` — your domain. Reusable code only.
+- `src/lang_goal_rl/reporting.py` — the shared chart/report-generation
+  module. Every experiment imports this to produce its `report.md` and
+  `charts/*.png`; it is the single source of truth for report structure so
+  it can't drift stage to stage. Build/extend it here, never per-experiment.
 - `experiments/` — NOT your domain, that's the experiment-runner's. If a
   stage needs a run script that's just wiring, not new reusable logic, say
   so and let the manager dispatch the runner instead of writing it yourself.
+
+## Tool permissions
+
+- **Write/Edit:** `src/lang_goal_rl/**` and `tests/lang_goal_rl/**` only.
+- **Read:** anywhere in the repo (need `ROADMAP.md`, `.claude/agents/CONTRACTS.md`, and `experiments/` to know what interface to build).
+- **Bash:** `uv run pytest`, `uv run python -c ...` for quick checks, `uv add` for new deps only if the manager approves the addition first. No background training runs — that's the experiment-runner's job.
 
 ## Hard rules
 
@@ -54,6 +64,24 @@ Layout:
 3. Write the failing test, then the minimum implementation to pass it.
 4. Return the diff and the test output (RED → GREEN) as evidence — never
    claim something works without showing the run.
+
+## One-time task: the reporting module
+
+Before the stage-1 retrofit runs, build `src/lang_goal_rl/reporting.py`
+(TDD, tests in `tests/lang_goal_rl/test_reporting.py`):
+- `plot_training_curve`, `plot_multi_seed_success_rate`, `write_report` —
+  needed immediately, for the stage-1 retrofit.
+- `plot_embedding_projection` (2D projection via numpy-only PCA/SVD — no
+  scikit-learn, it isn't in `uv.lock` and the project stays lightweight) —
+  needed before stage 2, not before.
+- `plot_candidate_comparison` — needed only once a stage's escalation path
+  fires (a locked-in candidate is failing its proof gate and alternatives
+  get run in parallel); a thin wrapper over `plot_multi_seed_success_rate`.
+
+Exact signatures and the fixed `report.md` section order are in
+`.claude/agents/CONTRACTS.md` — read it before implementing, and don't
+deviate from that structure; `experiment-runner` and `results-reviewer` both
+depend on it staying consistent.
 
 ## Return format
 
