@@ -68,3 +68,26 @@ Cap = `min(pending_runs, cores - 2)`. Check core count at runtime
 each background process's math-library threading to 1
 (`OMP_NUM_THREADS=1 MKL_NUM_THREADS=1`, `torch.set_num_threads(1)` inside
 the script) so concurrent runs don't oversubscribe cores.
+
+## Tiered seed strategy (speed — locked in after stage-3 scope discussion)
+
+Don't spend the full 10-seed budget on a first look. Run **3 seeds first**
+(seeds 0-2). If all 3 clear the proof gate's threshold cleanly, scale up to
+the full 10 (seeds 0-9, reusing the 3 already run) for the actual gate
+decision the reviewer checks. If any of the first 3 fail or looks marginal,
+report that honestly as a 3-seed result and let the manager decide whether
+to debug before spending the full budget — don't silently burn 10 seeds on
+something that was going to fail obviously anyway. The **final report and
+reviewer verdict always need the full 10** — the 3-seed pass is a cheap
+early signal, never a substitute for the real gate.
+
+## Reuse trained policies across stages, don't retrain by default
+
+If a later stage's zero-shot test only needs an already-trained policy
+(not new RL training), and a checkpoint from an earlier stage exists, load
+it — don't retrain from scratch. Always `model.save(...)` per seed under
+`experiments/NN_slug/checkpoints/seed_<k>.zip` (or `.pt` for
+non-SB3 artifacts) so the next stage can reuse them. Retraining from
+scratch is the single biggest cost in this pipeline — only do it when the
+stage's proof gate genuinely requires new training (e.g. a new architecture
+component), not for reusing an existing policy's already-learned behavior.

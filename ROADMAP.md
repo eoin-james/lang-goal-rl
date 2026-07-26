@@ -6,6 +6,16 @@ episode and re-targets a continuous goal accordingly.
 Each stage gates on a specific, falsifiable proof. Don't start the next stage
 until the current one's proof passes — update the Status column as you go.
 
+**Scope decision (locked in):** every stage runs on `FetchReach-v4` only —
+the easiest task in the Fetch suite (free-space reach, no contact/object
+dynamics). This is deliberate: the thesis contribution is the
+language→continuous-goal→live-re-goaling mechanism, not manipulation
+difficulty. A PASS on FetchReach proves the mechanism works; it does **not**
+prove it survives a harder task (Push, PickAndPlace, Slide — real contact
+dynamics, typically 10-50x the training budget in the literature).
+Generalization to harder tasks is explicitly out of scope here and belongs
+in the final writeup as future work, not as an unproven claim.
+
 | # | Stage | Reuse | New build | Proof gate | Status | Report |
 |---|-------|-------|-----------|------------|--------|--------|
 | 0 | Plumbing | gymnasium-robotics `FetchReach-v4` (MuJoCo-backed), env reset/step loop | — | Loop runs end-to-end: reset, inspect Dict obs (`observation`/`achieved_goal`/`desired_goal`), step | **Done** | — |

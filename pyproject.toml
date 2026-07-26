@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "gymnasium-robotics>=1.4.2",
+    "sentence-transformers>=5.6.1",
     "stable-baselines3[extra]>=2.9.0",
 ]
 

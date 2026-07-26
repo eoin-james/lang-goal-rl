@@ -43,10 +43,15 @@ Layout:
 - Every run script must print/log the exact metric named in the active
   stage's proof gate (e.g. "success rate over N held-out eval episodes") —
   don't make the reviewer infer it from raw training logs.
-- **Multi-seed is the default, not a maybe.** Run N=5 seeds of the
-  ROADMAP-locked approach for every stage's primary result. Single-seed only
-  by explicit manager exception (e.g. a throwaway sanity check, clearly
-  labeled as such). A single favorable seed is not a result.
+- **Multi-seed is the default, not a maybe** — but tiered for speed: run 3
+  seeds first, only scale to the full 10 if that first look clears the
+  gate cleanly. The full 10 seeds are always required for the actual
+  reviewer verdict. See the "Tiered seed strategy" in
+  `.claude/agents/CONTRACTS.md` for the exact rule.
+- **Reuse trained policy checkpoints instead of retraining from scratch**
+  when a stage's proof gate only needs a zero-shot test of existing
+  behavior. Always save checkpoints per seed so later stages can reuse
+  them. See CONTRACTS.md.
 - Launch seeds (and candidates, if the manager has authorized the
   escalation path — see below) as capped concurrent background processes
   per the concurrency contract in `.claude/agents/CONTRACTS.md` — don't
