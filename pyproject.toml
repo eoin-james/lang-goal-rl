@@ -7,7 +7,10 @@ authors = [
     { name = "EoinMcUF", email = "eoin@urbanfox.io" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "gymnasium-robotics>=1.4.2",
+    "stable-baselines3[extra]>=2.9.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.19,<0.12.0"]
