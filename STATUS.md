@@ -8,16 +8,21 @@ expand its actual results — no need to open other files for the numbers.
 | 0 | Basic setup works at all | ✅ Done |
 | 1 | Robot can reach a target given exact coordinates | ✅ Done |
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
-| 3 | Same, but told the target in an English sentence | 🔄 Built, not tested yet |
+| 3 | Same, but told the target in an English sentence | ❌ Tested — failed, cause found, fix queued |
 | 4 | Works with English phrasings it's never seen before | ⬜ Not started |
 | 5 | Can change its target mid-task when told something new | ⬜ Not started |
 | 6 | Live, real-time English control, start to finish | ⬜ Not started |
 
 ## Right now
 
-Stage 3's pieces are built. **Not yet tested** — that's the next step.
-Nothing else happens until that test runs and comes back with a real
-pass/fail.
+Stage 3's real test came back: **it failed**, but not mysteriously — the
+cause was actually found, and it's a fixable bug, not a dead end. Getting
+an independent second check on that diagnosis now, then sending it back to
+be fixed.
+
+Separately: pushing this repo to GitHub is in progress, blocked on a
+`gh repo create` command you need to run yourself (see chat above) —
+unrelated to the stage 3 result.
 
 <details>
 <summary><b>Stage 0 — Basic setup</b> ✅ Done</summary>
@@ -59,24 +64,33 @@ correctly. Nothing to measure — either it works or it doesn't, and it does.
 </details>
 
 <details>
-<summary><b>Stage 3 — Reach a target described in an English sentence</b> 🔄 Built, not tested yet</summary>
+<summary><b>Stage 3 — Reach a target described in an English sentence</b> ❌ Failed, cause diagnosed, fix queued</summary>
 
-**Built so far:**
-- 14 fixed test phrases (e.g. "reach up high", "move to the left"),
-  grouped into 7 real spatial regions — measured directly from the
-  simulator, not guessed.
-- A converter that turns any of those sentences into the same 16-number
-  code stage 2 uses.
-- Sanity check: do different phrases end up in meaningfully different
-  places, and do similar phrases end up close together? **Yes, checked
-  and confirmed.**
+**Sanity checks — all passed:**
+- 14 fixed test phrases, grouped into 7 real spatial regions — measured
+  directly from the simulator, not guessed.
+- Different phrases land in meaningfully different places; similar
+  phrases land close together (no confusion between distinct meanings).
+- Re-ran the robot on the old coordinate-based test (stage 1/2 style) using
+  this stage's freshly trained policies — still gets a perfect score,
+  proving the robot itself is fine.
 
-**Not yet done — this is the actual test:** take the robot trained in
-stage 2, and see if it can still reach the right spot when told the goal
-as an English sentence instead of a coordinate or a code. No result yet.
+**The actual test — failed:** told the robot the goal as an English
+sentence instead of a coordinate, checked if it still reached the right
+spot. **It essentially never did (near 0%).**
 
-Code: `src/lang_goal_rl/language_goal_projection.py`,
-`src/lang_goal_rl/goal_region_vocabulary.py`
+**Why — actually found, not a mystery:** the English-to-code converter is
+outputting numbers 5-10x larger in scale than the codes the robot was
+actually trained on. It's like giving directions in kilometers to someone
+who was trained on meters — right idea, wrong units, so the robot ends up
+looking in completely the wrong place. The converter itself correctly
+keeps different phrases distinct (that part's fine) — it just never learned
+to match the right output scale.
+
+**Next:** independent recheck of this diagnosis, then back to fix the
+scale mismatch specifically (not a redesign — a targeted fix).
+
+Full detail: `experiments/03_language_goal_projection/report.md`
 
 </details>
 
