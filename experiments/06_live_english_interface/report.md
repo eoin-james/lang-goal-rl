@@ -220,5 +220,76 @@ sanity table above before trusting any result -- clean 1.000 on all 3
 seeds.
 
 ### Reviewer verdict
-_Left blank by the runner — filled in by the manager from the reviewer's
-return._
+
+**Verdict: PASS (with mandatory scope qualifications below)**
+
+**Check 1 -- numbers, independently re-derived.** Every Set A/B no-switch
+and switch number matches the raw per-seed logs exactly, including the
+full time-to-redirect distributions (re-sorted and re-averaged by hand,
+not just re-read off the table). The single most important check: Set A's
+no-switch control reproduces stage 4 attempt 4's per-instruction table
+**exactly, on all 14 instructions, not just in aggregate** -- this
+confirms `LiveGoalController` wires the same k=1 lookup mechanism
+correctly, not just coincidentally similar aggregate numbers.
+
+**Check 2 -- is `task_success == redirect_success` a real finding or a
+predictable artifact?** The latter. "Task success" (final-step
+`is_success`) and "redirect success" (first post-switch step
+`is_success` flips true) are genuinely different definitions, but for
+FetchReach's simple dynamics plus a converged, goal-holding policy with
+30 post-switch steps to spare, once the policy reaches a goal it has no
+reason to drift off it again. This is a predictable mechanical consequence
+of this specific setup (easy task, short episode, converged policy) --
+not evidence of "no overshoot" in any general sense, and not something
+to carry forward as a property of the mechanism itself.
+
+**Check 3 -- does switch success really track the no-switch control, or
+is "closely" doing a lot of work?** Checked the actual statistics rather
+than eyeballing "close enough." Set A's switch success is almost
+perfectly predicted by whether the SECOND instruction alone (no-switch)
+succeeds: of 42 episodes, exactly 1 breaks that pattern (a marginal,
+late-redirecting case). A one-sided exact binomial test against "switch
+equals control" gives p=0.71 -- nowhere near significant; the observed 1/42
+gap is comfortably explained by noise. Set B matches its control exactly
+(0/21 gap). Conclusion: the switch mechanism itself adds no detectable
+cost: success is governed almost entirely by whether the NN lookup maps
+each instruction to the right region, not by anything about switching
+mid-episode.
+
+**Check 4 -- does the proof gate's literal wording pass?** Yes. "End-to-end
+demo across ad-hoc live phrasings: task success + time-to-redirect" --
+the full pipeline runs live, both named metrics are measured and reported
+for both sets, and Set B (7 genuinely new phrasings, verified disjoint
+from every vocabulary used anywhere else in this project) is the real
+test of "ad-hoc," with Set A serving as a calibration cross-check against
+already-known numbers. The gate asks for a demo with these two metrics
+measured, not a specific numeric bar -- that's what's delivered.
+
+**Check 5 -- known-risks cross-check, the important one for a capstone
+stage.** The "NN-lookup reference-coverage-density" risk (logged after
+stage 4) is **NOT contradicted by this result, and should not be read as
+resolved.** Set B's 6/7 success on 7 brand-new sentences is consistent
+with that risk being real but not severely triggered on this particular
+small draw -- 7 sentences cannot characterize an 84-sentence reference
+set's coverage density at the scale "ad-hoc" implies, and the one Set-B
+failure ("extend forward") fails in exactly the coverage-gap mode that
+risk predicted. Stage 5's scope caveat (embedding noise interacting with
+a live goal-swap was untested there) is **partially resolved**: this
+result shows no measurable degradation from combining live language
+embeddings with mid-episode switching, under this one switch point/budget/
+environment -- a real, positive finding, but narrow in scope, not a
+general robustness guarantee.
+
+**Check 6 -- honest capstone framing.** This is genuinely the mechanism
+the whole project set out to prove: type English, get a continuous-goal
+robot that re-targets mid-episode, live. It works, end to end. What it
+does NOT prove: that the 84-sentence reference vocabulary generalizes to
+arbitrary open-ended phrasing at scale (7 test sentences is a demo, not a
+statistically powered claim), or that this holds beyond FetchReach's
+easiest-task, short-episode, 3-seed scope. Both should be stated plainly
+in ROADMAP and STATUS, not left implicit.
+
+**Recommendation to manager:** Mark Done in ROADMAP, with an explicit
+scope statement in the Status text (mechanism proven end-to-end; coverage-
+density and cross-task generalization remain open, not claimed) rather
+than a bare "Done."

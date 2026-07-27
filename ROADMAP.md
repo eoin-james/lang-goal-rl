@@ -24,7 +24,7 @@ in the final writeup as future work, not as an unproven claim.
 | 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
 | 4 | Open vocabulary | same pipeline | k=1 zero-training nearest-neighbor lookup over an 84-sentence combined vocabulary (`experiments/04_open_vocabulary/`) — resolution changed from the originally-planned learned projection layer after 3 failed attempts; see Known risks | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **Done (4 attempts, 3 seeds) — k=1 NN lookup over an 84-sentence combined vocabulary; 0.571 mean / 1.000 median RL success on 14 held-out paraphrases, zero-shot, no retraining. See Known risks for the reference-coverage scalability condition before stage 6.** | [report](experiments/04_open_vocabulary/report.md) |
 | 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode (literal xyz goals — isolates the re-goaling mechanism from stages 2-4's embedding confounds) | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** — swap success == budget-matched baseline == full-budget reference == 1.000 for every healthy seed at every switch point tested. No fine-tuning needed; non-stationarity risk did not materialize for this scope (literal goals, 50-step FetchReach). | [report](experiments/05_midepisode_regoal/report.md) |
-| 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
+| 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop (`LiveGoalController`) | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | **Done (3 seeds) — mechanism proven end-to-end: type an English sentence, the robot goes for it; type a different one mid-episode, it redirects with no measurable extra cost (switch success matches no-switch control within noise, p=0.71). 7 genuinely brand-new phrasings: 0.857 task success, median 3-step redirect. Coverage-density and cross-task generalization remain open, not claimed — see Known risks.** | [report](experiments/06_live_english_interface/report.md) |
 
 _Status tags like "Done (5 seeds)" reflect the primary result; full per-seed
 numbers, charts, and any candidate comparison live in the linked report._
@@ -49,6 +49,13 @@ numbers, charts, and any candidate comparison live in the linked report._
   language pipeline live — embedding noise interacting with a goal-swap
   has not been tested and should not be assumed safe just because the
   literal-goal case was.
+  **Stage 6 status: partially resolved.** The live embedding + mid-episode
+  switch combination was tested directly (not assumed) — switch success
+  tracked each test set's own no-switch control within noise (p=0.71 for
+  the larger set, an exact match for the smaller one), no measurable
+  extra cost from combining them. Scoped narrowly: one switch point/step
+  budget, one environment, 3 seeds — a real positive result, not a general
+  robustness guarantee across configurations.
 - No verified prior work does stage 5 or 6 as described — that's the actual
   thesis contribution, not a reproduction.
 - **SAC deterministic-eval collapse (~20% of seeds, confirmed stage 1)**:
@@ -182,3 +189,10 @@ numbers, charts, and any candidate comparison live in the linked report._
   3's eval bug and stage 4's own MLP-overfit bug were each found the hard
   way. See `experiments/04_open_vocabulary/report.md`'s attempt-4 reviewer
   verdict for the full mechanism analysis.
+  **Stage 6 status: NOT contradicted, NOT resolved.** Stage 6 tested 7
+  genuinely brand-new phrasings (0.857 success, 1 failure in exactly this
+  risk's predicted coverage-gap mode) — too small a sample to characterize
+  an 84-sentence reference set's coverage density at the scale "ad-hoc"
+  implies. Treat this mechanism as demonstrated, not as proven to
+  generalize to arbitrary open-ended input — growing/validating the
+  reference set remains real, unstarted future work, not a solved problem.
