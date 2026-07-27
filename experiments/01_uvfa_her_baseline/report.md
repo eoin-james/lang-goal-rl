@@ -1,10 +1,41 @@
 # Stage 1: Goal-conditioned baseline (UVFA + HER)
+
+## In plain English
+This stage tests the foundation the whole project is built on: can an agent
+learn to reach a target position when it's told the goal as part of its
+input, using a training trick (called "hindsight experience replay") that
+lets it learn from misses as well as hits? Across 10 independent training
+runs, 8 learned the task perfectly (100% success on held-out test episodes)
+and 2 failed at test time despite training normally. That failure traces to
+a known quirk of the underlying learning algorithm (SAC), not to a problem
+with the goal-conditioning idea itself, so this stage is treated as a pass
+and becomes the baseline every later stage is compared against.
+
+## Result
+**Passed — 8 of 10 independently-seeded runs hit a perfect 1.000 success rate; the 2 failures are a known algorithm-level quirk, not a defect in the approach.**
+
+![multi_seed_success_rate.png](charts/multi_seed_success_rate.png)
+
+## How this was tested
+Ten separate training runs ("seeds," each starting from different random
+initial conditions) were trained on FetchReach, a robot-arm reaching task
+where the goal (a target xyz position) is given directly to the agent. Each
+trained agent was then evaluated on 50 held-out episodes it never saw during
+training, using its most confident (deterministic) action rather than
+exploratory ones. Success means the arm reached the target position within
+the episode. The proof gate required near-100% success on these held-out
+episodes.
+
+---
+
+## Full evidence
+
 **Date:** 2026-07-24 **Seeds run:** [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] **Candidates:** 1 (locked-in)
 
-## Proof gate (verbatim from ROADMAP.md)
+### Proof gate (verbatim from ROADMAP.md)
 > Near-100% success rate over held-out eval episodes on FetchReach.
 
-## Result summary
+### Result summary
 | Seed | Success rate (50 eval episodes) |
 |------|----------------------------------|
 | 0 | 1.000 |
@@ -22,34 +53,34 @@
 | Seeds >= 0.98 | 8/10 |
 
 
-## Charts
-![multi_seed_success_rate.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/charts/multi_seed_success_rate.png)
+### Charts
+![multi_seed_success_rate.png](charts/multi_seed_success_rate.png)
 
-## Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_2/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_3/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_4/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_5/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_6/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_7/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_8/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/runs/seed_9/stdout.log)
+### Raw output
+- [stdout.log](runs/seed_0/stdout.log)
+- [stdout.log](runs/seed_1/stdout.log)
+- [stdout.log](runs/seed_2/stdout.log)
+- [stdout.log](runs/seed_3/stdout.log)
+- [stdout.log](runs/seed_4/stdout.log)
+- [stdout.log](runs/seed_5/stdout.log)
+- [stdout.log](runs/seed_6/stdout.log)
+- [stdout.log](runs/seed_7/stdout.log)
+- [stdout.log](runs/seed_8/stdout.log)
+- [stdout.log](runs/seed_9/stdout.log)
 
-## Anomalies (factual, not judged)
+### Anomalies (factual, not judged)
 Seed 2 returned success_rate=0.000 over 50 eval episodes, while seeds 0, 1, 3, 4 all returned 1.000 — a single total-failure seed among four perfect seeds. This is a genuine per-seed result, not a run artifact: seed_2/stdout.log shows the same training shape as the other seeds (success_rate climbing steadily during training, reaching ~0.98-0.99 by the end of the training-time success_rate logging), then the held-out eval loop reports 0 successes out of 50. This looks like an eval-time policy collapse or a deterministic-action failure mode specific to this seed's learned policy, not a data or logging bug. Flagging for reviewer judgment on whether this counts as a proof-gate failure.
 
 Wall-clock check (requested by coordinator): the coordinator reported ~46 minutes wall-clock for all 5 seeds and asked whether the launch serialized them. Checked directly: `runs/seed_*/stdout.log` were all created at the same second (2026-07-24 15:59:38) and all last-modified within 1 second of each other (16:03:08-16:03:09) — total wall-clock for all 5 seeds to complete was ~3.5 minutes, matching the ~3 min/seed expectation for true concurrency (if serialized, 5 x ~3 min would be ~15 min minimum, not 3.5). `ps aux` taken shortly after launch showed all 5 `python train.py` processes running simultaneously at ~100% CPU each (i.e. pinned to one core each, consistent with OMP_NUM_THREADS=1/MKL_NUM_THREADS=1 actually taking effect — no oversubscription). The launch script used `cmd & ... ; wait` for all 5 backgrounded processes in one shell, which is genuinely concurrent, not serialized, and no concurrency-cap bug was found (cap = min(5, cores-2) = 5 on this 10-core machine, so running all 5 at once is correct, not a bug). The reported 46-minute figure does not match the file-timestamp evidence and most likely reflects elapsed time in the surrounding session (message/notification delivery lag) rather than actual training wall-clock.
 
 Follow-up batch (seeds 5-9, run after reviewer returned INCONCLUSIVE on seeds 0-4): 5=1.000, 6=1.000, 7=0.400, 8=1.000, 9=1.000. 1 of the 5 new seeds fell below 0.98. First launch attempt for this batch was killed mid-training by the runner's tool-call timeout (5 processes were still running at ~1 minute in, no success_rate line in any log) and had to be relaunched as an explicit background job; the logs below are from the second, completed launch.
 
-## Known-risks cross-check
+### Known-risks cross-check
 None of the ROADMAP.md "Known risks" entries apply to this stage. "Metric mismatch" is scoped to stage 3+ (sentence-transformer/CLIP-text embeddings replacing literal xyz goals) and "Non-stationarity at stage 5" is scoped to mid-episode re-goaling — neither is in play for a stage-1 literal-goal SAC+HER baseline.
 
-## Reviewer verdict
+### Reviewer verdict
 
-### Pass 2 (final) — after seeds 5-9
+#### Pass 2 (final) — after seeds 5-9
 
 **Verdict: PASS**
 
@@ -88,7 +119,7 @@ added to `ROADMAP.md`'s Known risks as its own entry, since it's occurred
 twice independently (seeds 2 and 7) at ~20% frequency with this exact
 config.
 
-### Pass 1 (superseded) — after seeds 0-4
+#### Pass 1 (superseded) — after seeds 0-4
 
 **Verdict: INCONCLUSIVE**
 
