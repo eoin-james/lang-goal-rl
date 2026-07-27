@@ -23,7 +23,7 @@ in the final writeup as future work, not as an unproven claim.
 | 2 | Learned continuous goal embedding | Eysenbach et al. Contrastive RL architecture (scoped adaptation — frozen encoder pretrained via InfoNCE, not a full critic-loss replacement) | swap literal goal for a learned latent (`experiments/02_contrastive_goal_embedding/`) | Success rate matches stage-1 baseline within tolerance; distance-in-latent correlates with true task distance | **Done (10/10 seeds ≥0.98, r=0.571 held-out distance correlation)** | [report](experiments/02_contrastive_goal_embedding/report.md) |
 | 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
 | 4 | Open vocabulary | same pipeline | k=1 zero-training nearest-neighbor lookup over an 84-sentence combined vocabulary (`experiments/04_open_vocabulary/`) — resolution changed from the originally-planned learned projection layer after 3 failed attempts; see Known risks | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **Done (4 attempts, 3 seeds) — k=1 NN lookup over an 84-sentence combined vocabulary; 0.571 mean / 1.000 median RL success on 14 held-out paraphrases, zero-shot, no retraining. See Known risks for the reference-coverage scalability condition before stage 6.** | [report](experiments/04_open_vocabulary/report.md) |
-| 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | Not started | — |
+| 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode (literal xyz goals — isolates the re-goaling mechanism from stages 2-4's embedding confounds) | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** — swap success == budget-matched baseline == full-budget reference == 1.000 for every healthy seed at every switch point tested. No fine-tuning needed; non-stationarity risk did not materialize for this scope (literal goals, 50-step FetchReach). | [report](experiments/05_midepisode_regoal/report.md) |
 | 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
 
 _Status tags like "Done (5 seeds)" reflect the primary result; full per-seed
@@ -35,10 +35,20 @@ numbers, charts, and any candidate comparison live in the linked report._
   contrastive-trained, cosine-similarity-friendly space — raw LLM hidden
   states don't. If stage 3+ moves off sentence-transformers, the
   distance-based reward needs its own justification first.
-- **Non-stationarity at stage 5**: HIRO exists because naively re-targeting
-  broke training in an adjacent setting (changing low-level policy, not
-  changing goal — but close enough to warrant caution). Don't assume the
-  zero-shot goal-swap works until measured.
+- **Non-stationarity at stage 5 (measured, did not materialize for this
+  scope)**: HIRO exists because naively re-targeting broke training in an
+  adjacent setting (changing low-level policy, not changing goal — but
+  close enough to warrant caution). Measured directly across 10 seeds,
+  4 switch points, literal xyz goals on FetchReach-v4 (50-step episodes):
+  zero-shot goal-swap success matched a fair, budget-matched fresh-episode
+  baseline exactly (1.000 vs 1.000) for every healthy seed — no
+  degradation, no fine-tuning needed. **Scope this narrowly, don't
+  over-generalize**: only tested with literal coordinates (no
+  embedding/projection/language pipeline engaged) on the easiest task in
+  the Fetch suite with short episodes. Stage 6 re-engages the full
+  language pipeline live — embedding noise interacting with a goal-swap
+  has not been tested and should not be assumed safe just because the
+  literal-goal case was.
 - No verified prior work does stage 5 or 6 as described — that's the actual
   thesis contribution, not a reproduction.
 - **SAC deterministic-eval collapse (~20% of seeds, confirmed stage 1)**:

@@ -1,7 +1,8 @@
 # Progress: 0 to hero
 
-**4 of 7 stages done. Starting stage 5.** Click any stage below to expand
-its actual results — no need to open other files for the numbers.
+**5 of 7 stages done. Starting stage 6 — the actual end goal.** Click any
+stage below to expand its actual results — no need to open other files for
+the numbers.
 
 | # | What it proves | Status |
 |---|---|---|
@@ -10,25 +11,36 @@ its actual results — no need to open other files for the numbers.
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
 | 3 | Same, but told the target in an English sentence | ✅ Done |
 | 4 | Works with English phrasings it's never seen before | ✅ Done (took 4 attempts — worth reading) |
-| 5 | Can change its target mid-task when told something new | ⬜ Starting now |
-| 6 | Live, real-time English control, start to finish | ⬜ Not started |
+| 5 | Can change its target mid-task when told something new | ✅ Done — no downside found |
+| 6 | Live, real-time English control, start to finish | ⬜ Starting now |
 
 ## Right now
 
-**Stage 4 passed — took 4 rounds, but ended with a clean, independently
-verified fix.** The short version: the trained sentence-to-code converter
-was the problem the whole time, not the robot. Replacing it with a much
-simpler "just borrow the answer from whichever known sentence this new one
-is most like" approach — using a bigger set of 84 known sentences — nearly
-tripled real success on brand-new sentences, from ~10% to ~57% (and the
-*typical* new sentence now succeeds, not just an unlucky few). Full
-before/after story is in the stage-4 dropdown below.
+**Stage 5 passed cleanly.** Tested whether the robot can be told a
+*different* target partway through a task and still succeed, without
+starting over. Across 10 independent training runs, changing the target
+mid-task worked exactly as well as being given that same target from the
+start with the same amount of time left — no penalty at all for the
+switch, for every run that trained normally. (2 of the 10 had a training
+glitch already known and tracked from stage 1 — unrelated to this test,
+confirmed by checking those same 2 runs' training logs.) This directly
+answers a real concern from the research literature that changing targets
+mid-task can quietly break things — it didn't, at least for this task.
 
-**Starting stage 5 now: can it change its target mid-task?** So far the
-robot has only ever been told its target once, at the very start of an
-episode. Stage 5 asks whether it can be told something new *partway
-through* and re-aim without starting over — a step closer to the eventual
-goal of a live conversation with the robot while it's working.
+**Heads up on scope:** this test used exact coordinates, not English
+sentences — a deliberate simplification to test "can it re-aim at all"
+without also dragging in every question from stages 2-4 about
+sentence-to-code accuracy. Stage 6 brings the English-sentence pipeline
+back into the mix live, so this clean result doesn't automatically carry
+over — worth remembering if stage 6 behaves differently.
+
+**Starting stage 6 now — the actual point of this whole project.** Every
+piece has been proven separately: reaching a coordinate, reaching a
+learned code, reaching an English instruction, reaching a never-seen
+English instruction, and re-aiming mid-task. Stage 6 puts them all
+together: type an instruction in live, watch the robot go for it, and
+change your mind partway through — the full conversation-with-a-robot
+experience this project set out to prove is possible.
 
 **3 demo clips are in `demos/`** — baseline success, the original broken
 failure, and a real success once the eval was fixed — each labeled with
@@ -253,10 +265,52 @@ Full detail: `experiments/04_open_vocabulary/report.md`
 </details>
 
 <details>
-<summary><b>Stages 5, 6 — Not started</b></summary>
+<summary><b>Stage 5 — Can it change its target mid-task?</b> ✅ Done</summary>
 
-- **5:** can it change its target mid-task if told something new partway
-  through?
-- **6:** the actual end goal — live, typed-in-real-time English control.
+**Setup:** using the same trained robot from stage 1 (exact coordinates,
+no English involved — kept deliberately simple to isolate this one
+question), give it one target for the first part of an episode, then
+swap to a genuinely different target partway through, and see if it can
+still reach the new one before time runs out.
+
+**The fair comparison that matters:** it's not enough to check "did it
+reach the new target" — it also needs to be compared against a version
+that was given the *same* new target from the start, but only allowed the
+*same remaining amount of time* (not a full fresh episode). Without
+matching the time budget, a worse score after a swap could just mean
+"less time left," not "swapping targets hurts." This test controls for
+that from the start.
+
+**Result: no difference at all.** Tested at 4 different points in the
+episode (early through late) across 10 independent training runs. For
+every run that trained cleanly (8 of 10), swapping targets mid-task
+scored exactly as well as the time-matched fresh comparison — both
+100% success, every time, at every switch point. The 2 remaining runs hit
+the same training glitch already tracked since stage 1 (unrelated to this
+test — confirmed by checking their own training logs show the exact same
+signature).
+
+**Why this matters:** research on this topic has generally found that
+changing targets mid-task can quietly break things, so it wasn't assumed
+this would just work — it was tested directly. For this task, it did.
+
+**Real limit worth flagging:** this only tested exact coordinates, not
+English sentences — deliberately, to isolate "can it re-aim at all" from
+every question stages 2-4 already answered about sentence accuracy.
+Whether this same clean result holds once the English pipeline is back
+in the loop (stage 6) is a genuinely open question, not something to
+assume.
+
+Full detail: `experiments/05_midepisode_regoal/report.md`
+
+</details>
+
+<details>
+<summary><b>Stage 6 — Live English control, start to finish</b> ⬜ Starting now</summary>
+
+The actual point of this whole project: type an instruction in while the
+robot is working, watch it go for it, and change your mind partway
+through — combining everything proven in stages 1-5 into one live,
+end-to-end experience.
 
 </details>
