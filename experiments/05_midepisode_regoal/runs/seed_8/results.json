@@ -1,0 +1,35 @@
+{
+  "model_seed": 8,
+  "sanity_check_success_rate": 1.0,
+  "sanity_check_episodes": 50,
+  "switch_step_results": [
+    {
+      "switch_step": 10,
+      "n_episodes": 40,
+      "swap_success_rate": 1.0,
+      "budget_matched_baseline_success_rate": 1.0,
+      "full_budget_reference_success_rate": 1.0
+    },
+    {
+      "switch_step": 20,
+      "n_episodes": 40,
+      "swap_success_rate": 1.0,
+      "budget_matched_baseline_success_rate": 1.0,
+      "full_budget_reference_success_rate": 1.0
+    },
+    {
+      "switch_step": 30,
+      "n_episodes": 40,
+      "swap_success_rate": 1.0,
+      "budget_matched_baseline_success_rate": 1.0,
+      "full_budget_reference_success_rate": 1.0
+    },
+    {
+      "switch_step": 40,
+      "n_episodes": 40,
+      "swap_success_rate": 1.0,
+      "budget_matched_baseline_success_rate": 1.0,
+      "full_budget_reference_success_rate": 1.0
+    }
+  ]
+}

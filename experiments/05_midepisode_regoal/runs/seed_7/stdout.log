@@ -1,0 +1,10 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_7.zip (zero-shot, no new training, seed=7)
+sanity_check_success_rate=0.400 over 50 episodes (literal control, full 50-step episode, no swap)
+switch_step=10 swap_success_rate=0.575 budget_matched_baseline_success_rate=0.600 full_budget_reference_success_rate=0.550 over 40 episodes
+switch_step=20 swap_success_rate=0.450 budget_matched_baseline_success_rate=0.400 full_budget_reference_success_rate=0.350 over 40 episodes
+switch_step=30 swap_success_rate=0.450 budget_matched_baseline_success_rate=0.675 full_budget_reference_success_rate=0.500 over 40 episodes
+switch_step=40 swap_success_rate=0.250 budget_matched_baseline_success_rate=0.700 full_budget_reference_success_rate=0.425 over 40 episodes
+results_saved=/Users/eoinmca/Projects/lang-goal-rl/experiments/05_midepisode_regoal/runs/seed_7/results.json
