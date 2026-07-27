@@ -547,3 +547,224 @@ policy-side and the next move is domain-randomization retraining of the SAC
 policies with goal-embedding noise injected during training. Either outcome
 is decisive and cheap (zero training either way) -- do this before spending
 another round on tolerance measurement or more projection training data.
+
+## Attempt 4 -- nearest-neighbor lookup (no MLP, no training)
+
+**Seeds run:** [0, 1, 2] **Candidates:** 2 (k=1, k=3 -- both run and reported
+in full, not cherry-picked) **New training:** none anywhere in this attempt --
+no projection training, no SAC training. Reuses the same 3 already-trained
+stage-3 SAC checkpoints (`03_language_goal_projection/checkpoints/
+seed_{0,1,2}.zip`) attempts 1-3 used, unchanged.
+
+### What changed
+
+`LanguageGoalProjection` (the trained 384->64->16 MLP) is removed from the
+inference path entirely. In its place: `nearest_neighbor_projection.py`
+(built by the rl-builder, unit-tested, zero learnable parameters) --
+distance-weighted blend of the `k` nearest reference sentences' fixed
+region-centroid targets in raw 384-dim `all-MiniLM-L6-v2` embedding space.
+The reference set is the **combined 84-sentence vocabulary**
+(`combined_vocabulary.py`, new): the original 14
+`goal_region_vocabulary.ALL_INSTRUCTIONS` + the 70
+`augmented_training_vocabulary.AUGMENTED_INSTRUCTIONS` -- confirmed disjoint
+(84 unique instructions, 0 duplicates, checked at runtime in both scripts
+below) -- fixing attempt 2's accidental replace-not-extend bug in the same
+step, since NN lookup needs no training and can use every known sentence as
+a reference point at once. Every target (both the 84 reference rows' and the
+7 region centroids') is computed via `precompute_instruction_targets` /
+`compute_region_target_embeddings` at the identical `(n_samples=1000,
+seed=0)` pair every prior stage-3/4 script used -- bit-identical centroids,
+not a separately invented approximation.
+
+Both k=1 (the reviewer's specified setup) and k=3 (checked, not assumed
+worse, per the task brief) are run for both the classification check and the
+RL eval.
+
+**Scripts:** `experiments/04_open_vocabulary/combined_vocabulary.py` (shared
+84-sentence reference builder), `nn_lookup_classification.py`
+(classification, no RL), `eval_nn_lookup_held_out.py` (RL eval, one
+invocation per seed).
+
+### Part 1 -- Semantic-neighbor classification over the combined 84-sentence reference (no RL)
+
+Query set unchanged: the same 14 `held_out_paraphrases.HELD_OUT_PARAPHRASES`
+every attempt has used. Reference set: the combined 84-sentence vocabulary's
+raw embeddings + fixed targets (not either 14- or 70-sentence set alone).
+
+**k=1 accuracy: 0.571 (8/14).** **k=3 accuracy: 0.714 (10/14).**
+
+This is a result the task brief flagged as possible and not to assume away:
+k=1 was the best classifier over the original 14-sentence reference in the
+earlier ceiling test (0.714, attempt 1's Part 4), but over the larger
+84-sentence combined reference, k=3 classification (0.714) beats k=1
+(0.571) -- more candidates to blend over evidently helps classification
+once the reference set is bigger, reversing the earlier k=1-wins-at-14
+finding. Reported factually; see Anomalies for how this interacts with the
+RL result below, which goes the other way.
+
+| Instruction | True region | k=1 nearest region | k=1 correct | k=3 nearest region | k=3 correct |
+|-------------|-------------|---------------------|--------------|----------------------|--------------|
+| settle into the middle of the workspace | center | center | yes | center | yes |
+| return your hand to a neutral position | center | reach back | NO | reach right | NO |
+| push your arm out in front of you | reach forward | reach back | NO | reach down low | NO |
+| extend forward away from your body | reach forward | reach up high | NO | reach forward | yes |
+| draw your hand back toward yourself | reach back | reach back | yes | reach back | yes |
+| retreat away from the front of the workspace | reach back | reach forward | NO | reach back | yes |
+| swing your arm over to the left | reach left | reach left | yes | reach left | yes |
+| shift your gripper toward the left edge | reach left | reach left | yes | reach right | NO |
+| swing your arm over to the right | reach right | reach right | yes | reach right | yes |
+| shift your gripper toward the right edge | reach right | reach left | NO | reach right | yes |
+| raise your arm as high as it will go | reach up high | reach down low | NO | reach down low | NO |
+| extend upward toward the ceiling | reach up high | reach up high | yes | reach up high | yes |
+| lower your arm toward the floor | reach down low | reach down low | yes | reach down low | yes |
+| drop your gripper down low | reach down low | reach down low | yes | reach down low | yes |
+
+**Script:** `nn_lookup_classification.py`
+**Raw output:** [classification_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/classification_stdout.log)
+
+### Part 2 -- RL success rate on held-out phrasings (the actual generalization test)
+
+Same 3 already-trained SAC checkpoints as every prior attempt -- no
+retraining. Ground truth judged against each instruction's true region
+centroid (`train.compute_region_centroid`), unchanged from attempts 1-3.
+The only thing substituted is what the *policy* is shown as its desired-goal
+embedding: the k-NN blended point instead of the trained MLP's output.
+
+| Seed | Literal success rate (50 episodes) | k=1 mean held-out language success (14 instr. x 50 episodes) | k=3 mean held-out language success (14 instr. x 50 episodes) |
+|------|--------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------------|
+| 0 | 1.000 | 0.571 | 0.429 |
+| 1 | 1.000 | 0.571 | 0.429 |
+| 2 | 1.000 | 0.571 | 0.286 |
+
+**Aggregate across 3 seeds x 14 held-out instructions (42 success-rate samples):**
+
+- **k=1: mean=0.5714, median=1.0000, max=1.000, min=0.000, nonzero=24/42.**
+- **k=3: mean=0.3810, median=0.0000, max=1.000, min=0.000, nonzero=16/42.**
+
+**Comparison to every prior attempt** (all measured on the identical 14
+held-out instructions, identical 3 SAC checkpoints, identical
+`compute_region_centroid` ground truth):
+
+| Attempt | Mean | Median | Nonzero/42 |
+|---|---|---|---|
+| Attempt 1 (14-sentence MLP) | 0.024 | 0.000 | 1/42 |
+| Attempt 2 (70-sentence MLP) | 0.095 | 0.000 | 4/42 |
+| **Attempt 4, k=1 (84-sentence NN lookup)** | **0.571** | **1.000** | **24/42** |
+| **Attempt 4, k=3 (84-sentence NN lookup)** | **0.381** | **0.000** | **16/42** |
+
+Literal-goal control stays a clean 1.000 on all 3 seeds throughout, so this
+attempt's jump is specific to the projection/lookup substitution, not a
+policy or checkpoint change.
+
+**All 3 seeds agree exactly, per instruction, at both k values** (identical
+per-instruction success rate across seeds 0/1/2 at k=1; k=3 differs only on
+`'settle into the middle of the workspace'`, `'draw your hand back toward
+yourself'`, `'swing your arm over to the left'`, `'shift your gripper toward
+the right edge'`, and `'raise your arm as high as it will go'`, each a
+single-seed flip). This is the same deterministic-agreement pattern attempt
+3's reviewer noted for perturbed-embedding cells: a fixed goal-embedding
+input plus a deterministic policy makes cross-seed agreement the expected
+default, not evidence of a defect.
+
+**Scripts:** `eval_nn_lookup_held_out.py`
+**Raw output:**
+- [seed_0/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_0/stdout.log)
+- [seed_1/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_1/stdout.log)
+- [seed_2/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_2/stdout.log)
+
+#### Per-instruction detail (mean success rate across all 3 seeds)
+
+| Instruction | Region | k=1 RL success | k=1 classification | k=3 RL success | k=3 classification |
+|-------------|--------|------------------|-----------------------|------------------|-----------------------|
+| settle into the middle of the workspace | center | 1.000 | correct | 0.667 | correct |
+| return your hand to a neutral position | center | 0.000 | WRONG | 0.000 | WRONG |
+| push your arm out in front of you | reach forward | 0.000 | WRONG | 0.000 | WRONG |
+| extend forward away from your body | reach forward | 0.000 | WRONG | 0.000 | correct |
+| draw your hand back toward yourself | reach back | 1.000 | correct | 0.333 | correct |
+| retreat away from the front of the workspace | reach back | 0.000 | WRONG | 0.000 | correct |
+| swing your arm over to the left | reach left | 1.000 | correct | 0.667 | correct |
+| shift your gripper toward the left edge | reach left | 1.000 | correct | 0.000 | WRONG |
+| swing your arm over to the right | reach right | 1.000 | correct | 0.000 | correct |
+| shift your gripper toward the right edge | reach right | 0.000 | WRONG | 0.333 | correct |
+| raise your arm as high as it will go | reach up high | 0.000 | WRONG | 0.333 | WRONG |
+| extend upward toward the ceiling | reach up high | 1.000 | correct | 1.000 | correct |
+| lower your arm toward the floor | reach down low | 1.000 | correct | 1.000 | correct |
+| drop your gripper down low | reach down low | 1.000 | correct | 1.000 | correct |
+
+### Before/after/ceiling comparison across all attempts
+
+| Metric | Attempt 1 (14-sent. MLP) | Attempt 2 (70-sent. MLP) | 14-sent. NN-ceiling (k=1, geometry only) | Attempt 4 (84-sent. NN lookup, k=1) | Attempt 4 (84-sent. NN lookup, k=3) |
+|---|---|---|---|---|---|
+| Semantic-neighbor classification accuracy | 0.286 (4/14) | 0.643 (9/14) | 0.714 (10/14) | 0.571 (8/14) | 0.714 (10/14) |
+| Held-out RL success (mean) | 0.024 | 0.095 | n/a -- geometry-only, no RL policy involved | **0.571** | 0.381 |
+| Held-out RL success (median) | 0.000 | 0.000 | n/a | **1.000** | 0.000 |
+| Held-out RL nonzero samples | 1/42 | 4/42 | n/a | **24/42** | 16/42 |
+| Literal-goal control (all seeds) | 1.000 | 1.000 | n/a | 1.000 | 1.000 |
+
+### Anomalies (factual, not judged)
+
+Held-out RL success jumped by roughly an order of magnitude over every prior
+attempt at k=1 (mean 0.024 -> 0.095 -> **0.571**; median 0.000 -> 0.000 ->
+**1.000**; nonzero 1/42 -> 4/42 -> **24/42**), using zero additional training
+of any kind -- same SAC checkpoints, same frozen sentence-transformer, same
+frozen `GoalEncoder`, only the projection mechanism (learned MLP -> k-NN
+lookup) changed. Literal-goal control is unchanged at a clean 1.000 on all 3
+seeds throughout, so this is specific to the projection/lookup substitution.
+
+**Classification accuracy and RL success rank k differently, and this
+report does not resolve why.** Over the combined 84-sentence reference, k=3
+classifies more accurately than k=1 (0.714 vs. 0.571), but k=1 scores nearly
+50% higher mean RL success than k=3 (0.571 vs. 0.381) and a much higher
+nonzero count (24/42 vs. 16/42). This is the same qualitative pattern
+attempts 1-3 already surfaced (classification accuracy is not a reliable
+proxy for RL success) but now cutting in the *opposite* direction from
+attempt 2's finding: there, higher classification (MLP's 0.643) still
+under-performed the ceiling's RL implications; here, the *lower*-classifying
+k value (k=1, 0.571) produces the *higher* RL success. A per-instruction
+comparison makes the mechanism visible directly: k=1 returns an exact
+copied training target (no blending) while k=3 averages three targets
+together, and for several instructions that averaging pulls the result away
+from the correct region's centroid even when the single-nearest point (used
+by k=1) was already close enough to succeed -- e.g. `'shift your gripper
+toward the left edge'` and `'swing your arm over to the right'` both
+classify correctly at k=1 with 1.000 RL success, but blending in 2 more
+reference points at k=3 either misclassifies the same instruction (`'shift
+your gripper toward the left edge'` -> WRONG) or keeps the classification
+correct while the blended point still lands outside the 0.05m success
+radius (`'swing your arm over to the right'` -> 0.000 RL success despite
+correct classification). Not every instruction moves this direction (`'shift
+your gripper toward the right edge'` goes from WRONG/0.000 at k=1 to
+correct/0.333 at k=3), so this is not a uniform "blending always hurts"
+rule, just the dominant pattern across the 14 instructions measured.
+
+All 3 SAC seeds agree exactly on every k=1 cell and on all but 5 of the 14
+k=3 cells (each of those 5 a single-seed flip, not a 2-1 split) -- consistent
+with attempt 3's finding that a fixed goal-embedding input plus a
+deterministic policy makes cross-seed agreement on pass/fail the expected
+default, not new evidence of anything.
+
+### Known-risks cross-check
+
+Directly answers ROADMAP.md's "Projection-layer overfitting to a minimal
+vocabulary" entry's own recommended next step (bypass the MLP with the
+zero-training k=1 NN lookup over the combined 84-sentence set) and attempt
+3's reviewer-recommended decisive experiment. The result is a strong
+directional confirmation that the trained MLP's own learned mapping -- not
+policy tolerance, not embedding-space geometry -- was the dominant remaining
+bottleneck after attempt 2's data augmentation: removing the MLP entirely
+(k=1) recovers RL success attempt 2's augmented MLP could not reach with the
+same checkpoints and the same held-out instructions. Not the SAC
+deterministic-eval-collapse signature (literal eval stays a clean 1.000 on
+all 3 seeds throughout, matching every prior attempt). Not the "Metric
+mismatch" known risk (same frozen sentence-transformer and `GoalEncoder`
+throughout; only the projection mechanism changed). This attempt does *not*
+resolve the "Policy tolerance to goal-embedding imprecision is
+direction-sensitive" known risk entry -- the k=1-vs-k=3 divergence documented
+in Anomalies above is a new, related data point (blending in more reference
+points can move an already-successful direction into a failing one, or vice
+versa, on a per-instruction basis) but this report does not attempt to
+re-derive or correct that entry's claims; that synthesis is left to the
+reviewer.
+
+### Reviewer verdict
+

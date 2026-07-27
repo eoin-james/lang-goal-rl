@@ -1,0 +1,36 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+combined reference set: 84 instructions (84 unique, 14 original + 70 augmented)
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/checkpoints/seed_0.zip (no new training, seed=0)
+success_rate=1.000 over 50 episodes
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10737.25it/s]
+k=1 language_success_rate=1.000 instruction="settle into the middle of the workspace" region="center" over 50 episodes
+k=1 language_success_rate=0.000 instruction="return your hand to a neutral position" region="center" over 50 episodes
+k=1 language_success_rate=0.000 instruction="push your arm out in front of you" region="reach forward" over 50 episodes
+k=1 language_success_rate=0.000 instruction="extend forward away from your body" region="reach forward" over 50 episodes
+k=1 language_success_rate=1.000 instruction="draw your hand back toward yourself" region="reach back" over 50 episodes
+k=1 language_success_rate=0.000 instruction="retreat away from the front of the workspace" region="reach back" over 50 episodes
+k=1 language_success_rate=1.000 instruction="swing your arm over to the left" region="reach left" over 50 episodes
+k=1 language_success_rate=1.000 instruction="shift your gripper toward the left edge" region="reach left" over 50 episodes
+k=1 language_success_rate=1.000 instruction="swing your arm over to the right" region="reach right" over 50 episodes
+k=1 language_success_rate=0.000 instruction="shift your gripper toward the right edge" region="reach right" over 50 episodes
+k=1 language_success_rate=0.000 instruction="raise your arm as high as it will go" region="reach up high" over 50 episodes
+k=1 language_success_rate=1.000 instruction="extend upward toward the ceiling" region="reach up high" over 50 episodes
+k=1 language_success_rate=1.000 instruction="lower your arm toward the floor" region="reach down low" over 50 episodes
+k=1 language_success_rate=1.000 instruction="drop your gripper down low" region="reach down low" over 50 episodes
+k=3 language_success_rate=1.000 instruction="settle into the middle of the workspace" region="center" over 50 episodes
+k=3 language_success_rate=0.000 instruction="return your hand to a neutral position" region="center" over 50 episodes
+k=3 language_success_rate=0.000 instruction="push your arm out in front of you" region="reach forward" over 50 episodes
+k=3 language_success_rate=0.000 instruction="extend forward away from your body" region="reach forward" over 50 episodes
+k=3 language_success_rate=0.000 instruction="draw your hand back toward yourself" region="reach back" over 50 episodes
+k=3 language_success_rate=0.000 instruction="retreat away from the front of the workspace" region="reach back" over 50 episodes
+k=3 language_success_rate=1.000 instruction="swing your arm over to the left" region="reach left" over 50 episodes
+k=3 language_success_rate=0.000 instruction="shift your gripper toward the left edge" region="reach left" over 50 episodes
+k=3 language_success_rate=0.000 instruction="swing your arm over to the right" region="reach right" over 50 episodes
+k=3 language_success_rate=1.000 instruction="shift your gripper toward the right edge" region="reach right" over 50 episodes
+k=3 language_success_rate=0.000 instruction="raise your arm as high as it will go" region="reach up high" over 50 episodes
+k=3 language_success_rate=1.000 instruction="extend upward toward the ceiling" region="reach up high" over 50 episodes
+k=3 language_success_rate=1.000 instruction="lower your arm toward the floor" region="reach down low" over 50 episodes
+k=3 language_success_rate=1.000 instruction="drop your gripper down low" region="reach down low" over 50 episodes
