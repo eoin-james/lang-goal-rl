@@ -3,7 +3,10 @@
 This is the project's visual-proof utility: numbers in a report don't show
 whether a trained policy actually reaches for the right place. `record_episode`
 runs one real episode through `env.render()` (never a mocked renderer) and
-encodes the frames with `imageio`.
+encodes the frames with `imageio`. `record_episode_with_goal_switch` is the
+same idea for an episode whose goal changes partway through, without a
+reset — the visual-proof counterpart to `midepisode_regoal.
+rollout_with_goal_switch`.
 
 Two goal-embedding modes, matching what this project's stages actually need:
 
@@ -21,11 +24,17 @@ Two goal-embedding modes, matching what this project's stages actually need:
   for a version that substitutes the override wherever it would have
   computed `goal_encoder(desired_goal)`, and restored afterward.
   `achieved_goal` always goes through the real frozen `GoalEncoder`, in
-  both modes, every step.
+  both modes, every step. `record_episode_with_goal_switch` extends this to
+  two overrides, one per phase (see its own docstring).
 
 Ground truth for success/failure is always whatever `info["is_success"]`
 reports against the env's real state — this module never touches the env's
-goal, only what the policy's features extractor sees.
+goal for `record_episode`. `record_episode_with_goal_switch` is the one
+exception: it deliberately writes `initial_goal_xyz`/`new_goal_xyz` into
+`env.unwrapped.goal` itself, because the whole point of a goal *switch* is
+changing what the env's ground truth is — the embedding-override params
+never affect that ground truth, only what the policy's features extractor
+sees.
 """
 
 from __future__ import annotations
@@ -115,6 +124,42 @@ def _pin_desired_goal_embedding(
         extractor.forward = original_forward
 
 
+def _goal_embedding_override_context(
+    model: SAC, embedding: torch.Tensor | None
+) -> AbstractContextManager[None]:
+    """Pin `model.actor.features_extractor`'s desired-goal output to `embedding`, or do nothing.
+
+    `nullcontext()` when `embedding` is `None` so literal-goal callers never
+    touch `model.actor` at all -- required so a model without a
+    `GoalEmbeddingExtractor` (e.g. a plain stage-1 checkpoint) still works.
+    Shared by `record_episode` and `record_episode_with_goal_switch` so
+    there's exactly one place that resolves the concrete
+    `GoalEmbeddingExtractor` type (see the comment this replaced, inlined
+    below where it's actually used).
+
+    Args:
+        model: A trained SAC model. Only accessed (via
+            `model.actor.features_extractor`) when `embedding` is not
+            `None`.
+        embedding: Fixed embedding to substitute, or `None` for a no-op.
+
+    Returns:
+        A context manager; see `_pin_desired_goal_embedding`.
+    """
+    if embedding is None:
+        return nullcontext()
+    # SB3 types SAC.actor.features_extractor generically as
+    # BaseFeaturesExtractor since any features-extractor class can be
+    # plugged in via policy_kwargs. This project's build_model
+    # (experiments/03_language_goal_projection/train.py) always constructs
+    # the actor with features_extractor_class=GoalEmbeddingExtractor, so the
+    # concrete runtime type is known even though the stub can't express it.
+    # Only resolved here, inside the override branch, so literal-goal mode
+    # never touches `model.actor` at all.
+    features_extractor = cast("GoalEmbeddingExtractor", model.actor.features_extractor)
+    return _pin_desired_goal_embedding(features_extractor, embedding)
+
+
 def record_episode(
     env: gym.Env,
     model: SAC,
@@ -167,26 +212,8 @@ def record_episode(
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    override_context: AbstractContextManager[None] = nullcontext()
-    if goal_embedding_override is not None:
-        # SB3 types SAC.actor.features_extractor generically as
-        # BaseFeaturesExtractor since any features-extractor class can be
-        # plugged in via policy_kwargs. This project's build_model
-        # (experiments/03_language_goal_projection/train.py) always
-        # constructs the actor with
-        # features_extractor_class=GoalEmbeddingExtractor, so the concrete
-        # runtime type is known even though the stub can't express it. Only
-        # resolved here, inside the override branch, so literal-goal mode
-        # never touches `model.actor` at all.
-        features_extractor = cast(
-            "GoalEmbeddingExtractor", model.actor.features_extractor
-        )
-        override_context = _pin_desired_goal_embedding(
-            features_extractor, goal_embedding_override
-        )
-
     frames: list[npt.ArrayLike] = []
-    with override_context:
+    with _goal_embedding_override_context(model, goal_embedding_override):
         obs, _info = env.reset()
         frames.append(_render_or_raise(env))
 
@@ -205,6 +232,150 @@ def record_episode(
     # imageio's GIF (pillow) writer deprecated the `fps` kwarg in favor of
     # per-frame `duration` in milliseconds -- convert here so callers keep
     # the more intuitive `fps` unit without triggering a deprecation warning.
+    imageio.mimsave(out_path, frames, duration=1000 / fps)
+    return EpisodeRecording(path=out_path, success=is_success, n_steps=n_steps)
+
+
+def record_episode_with_goal_switch(
+    env: gym.Env,
+    model: SAC,
+    *,
+    out_path: Path,
+    initial_goal_xyz: npt.ArrayLike,
+    switch_step: int,
+    new_goal_xyz: npt.ArrayLike,
+    initial_goal_embedding: torch.Tensor | None = None,
+    new_goal_embedding: torch.Tensor | None = None,
+    max_steps: int | None = None,
+    fps: int = 10,
+) -> EpisodeRecording:
+    """Roll out one episode targeting `initial_goal_xyz`, then `new_goal_xyz` from `switch_step` on, as a GIF.
+
+    Stage 5/6's visual-proof counterpart to `midepisode_regoal.
+    rollout_with_goal_switch`: same mid-episode goal swap mechanism (no
+    `env.reset()` between phases), but every step is rendered and encoded
+    into `out_path`, matching `record_episode`'s render loop exactly. Ground
+    truth is always `initial_goal_xyz`/`new_goal_xyz`, written directly into
+    `env.unwrapped.goal` and `obs["desired_goal"]` right after reset and
+    again at the switch -- the same "write straight into the env's real
+    goal state" mechanism `rollout_with_goal_switch` and
+    `evaluate_language_goal`
+    (`experiments/03_language_goal_projection/train.py`) both already use.
+    `initial_goal_embedding`/`new_goal_embedding` never change this ground
+    truth; they only optionally change what the *policy* sees (see below).
+
+    Two goal-input modes, matching what stages 5 and 6 each need:
+
+    - Literal-xyz mode (default, both embedding args `None`): the policy
+      sees whatever `GoalEmbeddingExtractor.forward` normally computes from
+      the env's real `desired_goal` in both phases -- this is stage 5's
+      mode, testing the re-goaling mechanism itself, not the embedding
+      layer. `model.actor` is never touched.
+    - Embedding-override mode (both embedding args given): the policy's
+      desired-goal input is additionally pinned to `initial_goal_embedding`
+      for the pre-switch phase and `new_goal_embedding` for the post-switch
+      phase, via `_goal_embedding_override_context` /
+      `_pin_desired_goal_embedding` -- the same monkeypatch `record_episode`
+      and `rollout_with_goal_switch` already use. This is stage 6's mode
+      (e.g. two different live English instructions before and after the
+      switch). The env's ground-truth goal is still `initial_goal_xyz`/
+      `new_goal_xyz` regardless -- a caller demoing a language instruction
+      passes its known region centroid (or other ground-truth xyz) as the
+      `*_goal_xyz` args, exactly as `evaluate_language_goal` does, rather
+      than this function inventing a different notion of ground truth for
+      embedding mode.
+
+    Args:
+        env: A `render_mode="rgb_array"` goal-conditioned env instance
+            (this project only uses FetchReach-v4). `env.render()` is
+            called after every reset and step.
+        model: A trained SAC model, rolled out deterministically
+            (`model.predict(obs, deterministic=True)`). In literal-xyz mode
+            `model.actor` is never accessed -- any stage's checkpoint
+            works. In embedding mode, `model.actor.features_extractor` must
+            be a `GoalEmbeddingExtractor`.
+        out_path: Where to write the GIF. Parent directories are created if
+            missing.
+        initial_goal_xyz: The goal active for the first `switch_step`
+            steps, shape `(3,)`. Written into `env.unwrapped.goal` right
+            after reset.
+        switch_step: Number of steps to run against `initial_goal_xyz`
+            before switching. Must be `>= 1` (a switch at step 0 is just a
+            fresh episode, not a mid-episode switch) and, if `max_steps` is
+            given, `< max_steps` (there must be at least one post-switch
+            step to judge and record).
+        new_goal_xyz: The goal active from `switch_step` onward, shape
+            `(3,)`. This is what `success` is judged against.
+        initial_goal_embedding: If given (together with
+            `new_goal_embedding`), the policy's desired-goal input is
+            additionally pinned to this fixed embedding for the pre-switch
+            phase.
+        new_goal_embedding: Paired with `initial_goal_embedding` for the
+            post-switch phase. Both or neither must be given.
+        max_steps: Safety cap on total episode length (pre- and
+            post-switch steps combined). If the episode hasn't terminated
+            or truncated by this many steps, recording stops anyway.
+            `None` (default) relies solely on the env's own
+            termination/truncation.
+        fps: Frames per second to encode the GIF at.
+
+    Returns:
+        An `EpisodeRecording` with the GIF's path, whether the *new* goal
+        was actually reached by the end of the episode (any success during
+        the pre-switch phase never counts), and how many steps it ran for.
+
+    Raises:
+        ValueError: If exactly one of `initial_goal_embedding`/
+            `new_goal_embedding` is given, if `switch_step < 1`, or if
+            `max_steps` is given and `switch_step >= max_steps`.
+        TypeError: If `env.render()` doesn't return an rgb array at any
+            point.
+    """
+    if (initial_goal_embedding is None) != (new_goal_embedding is None):
+        msg = "initial_goal_embedding and new_goal_embedding must both be given or both omitted"
+        raise ValueError(msg)
+    if switch_step < 1:
+        msg = f"switch_step must be >= 1 (got {switch_step}) -- a switch at step 0 isn't mid-episode"
+        raise ValueError(msg)
+    if max_steps is not None and switch_step >= max_steps:
+        msg = f"switch_step ({switch_step}) must be < max_steps ({max_steps}) to leave a post-switch step"
+        raise ValueError(msg)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    initial_goal = np.asarray(initial_goal_xyz, dtype=np.float64)
+    new_goal = np.asarray(new_goal_xyz, dtype=np.float64)
+
+    frames: list[npt.ArrayLike] = []
+    obs, _info = env.reset()
+    env.unwrapped.goal = initial_goal.copy()
+    obs["desired_goal"] = initial_goal.copy()
+    frames.append(_render_or_raise(env))
+
+    n_steps = 0
+    terminated = truncated = False
+    with _goal_embedding_override_context(model, initial_goal_embedding):
+        while n_steps < switch_step and not (terminated or truncated):
+            action, _state = model.predict(obs, deterministic=True)
+            obs, _reward, terminated, truncated, _info = env.step(action)
+            frames.append(_render_or_raise(env))
+            n_steps += 1
+
+    env.unwrapped.goal = new_goal.copy()
+    obs["desired_goal"] = new_goal.copy()
+    is_success = False
+
+    with _goal_embedding_override_context(model, new_goal_embedding):
+        while not (terminated or truncated) and (
+            max_steps is None or n_steps < max_steps
+        ):
+            action, _state = model.predict(obs, deterministic=True)
+            obs, _reward, terminated, truncated, info = env.step(action)
+            frames.append(_render_or_raise(env))
+            is_success = bool(info.get("is_success", is_success))
+            n_steps += 1
+
     imageio.mimsave(out_path, frames, duration=1000 / fps)
     return EpisodeRecording(path=out_path, success=is_success, n_steps=n_steps)
 
