@@ -1,0 +1,3 @@
+# Findings & Tech Debt
+
+- [ ] `src/lang_goal_rl/midepisode_regoal.py:149` — `rollout_with_goal_switch` only tracks the *final* step's `is_success`, not the *first* post-switch success step. Stage 6's time-to-redirect metric needed the latter, so `experiments/06_live_english_interface/live_regoal_eval.py` carries a local, instrumented duplicate (`rollout_with_goal_switch_timed`) that otherwise mirrors the reusable function exactly. Consider promoting an optional per-step trace / first-success-step return value into `midepisode_regoal.py` if a future stage needs the same timing data, to avoid a second duplicate.

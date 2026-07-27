@@ -1,0 +1,373 @@
+{
+  "model_seed": 2,
+  "literal_sanity_success_rate": 1.0,
+  "sanity_episodes": 50,
+  "switch_step": 20,
+  "max_steps": 50,
+  "control_episodes": 50,
+  "set_a_no_switch_control": [
+    {
+      "instruction": "settle into the middle of the workspace",
+      "region": "center",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "return your hand to a neutral position",
+      "region": "center",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "push your arm out in front of you",
+      "region": "reach forward",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "extend forward away from your body",
+      "region": "reach forward",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "draw your hand back toward yourself",
+      "region": "reach back",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "retreat away from the front of the workspace",
+      "region": "reach back",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "swing your arm over to the left",
+      "region": "reach left",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "shift your gripper toward the left edge",
+      "region": "reach left",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "swing your arm over to the right",
+      "region": "reach right",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "shift your gripper toward the right edge",
+      "region": "reach right",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "raise your arm as high as it will go",
+      "region": "reach up high",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "extend upward toward the ceiling",
+      "region": "reach up high",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "lower your arm toward the floor",
+      "region": "reach down low",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "drop your gripper down low",
+      "region": "reach down low",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    }
+  ],
+  "set_b_no_switch_control": [
+    {
+      "instruction": "keep the robotic hand hovering exactly at the workspace's midpoint",
+      "region": "center",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "push the end effector forward, away from the robot's base",
+      "region": "reach forward",
+      "success_rate": 0.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "bring the arm back in, closer to the robot's chassis",
+      "region": "reach back",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "carry the hand across the workspace toward its left boundary",
+      "region": "reach left",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "swing the arm over so the gripper reaches the right-hand side of the space",
+      "region": "reach right",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "send the arm climbing toward the highest point it can reach",
+      "region": "reach up high",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    },
+    {
+      "instruction": "let the arm descend toward the lowest point it can reach",
+      "region": "reach down low",
+      "success_rate": 1.0,
+      "n_episodes": 50
+    }
+  ],
+  "set_a_switch_episodes": [
+    {
+      "instr1": "settle into the middle of the workspace",
+      "region1": "center",
+      "instr2": "shift your gripper toward the left edge",
+      "region2": "reach left",
+      "success": true,
+      "first_success_step": 24,
+      "time_to_redirect": 4,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "return your hand to a neutral position",
+      "region1": "center",
+      "instr2": "swing your arm over to the right",
+      "region2": "reach right",
+      "success": true,
+      "first_success_step": 24,
+      "time_to_redirect": 4,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "push your arm out in front of you",
+      "region1": "reach forward",
+      "instr2": "extend upward toward the ceiling",
+      "region2": "reach up high",
+      "success": true,
+      "first_success_step": 24,
+      "time_to_redirect": 4,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "extend forward away from your body",
+      "region1": "reach forward",
+      "instr2": "drop your gripper down low",
+      "region2": "reach down low",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "draw your hand back toward yourself",
+      "region1": "reach back",
+      "instr2": "settle into the middle of the workspace",
+      "region2": "center",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "retreat away from the front of the workspace",
+      "region1": "reach back",
+      "instr2": "return your hand to a neutral position",
+      "region2": "center",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "swing your arm over to the left",
+      "region1": "reach left",
+      "instr2": "extend upward toward the ceiling",
+      "region2": "reach up high",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "shift your gripper toward the left edge",
+      "region1": "reach left",
+      "instr2": "drop your gripper down low",
+      "region2": "reach down low",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "swing your arm over to the right",
+      "region1": "reach right",
+      "instr2": "push your arm out in front of you",
+      "region2": "reach forward",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "shift your gripper toward the right edge",
+      "region1": "reach right",
+      "instr2": "extend forward away from your body",
+      "region2": "reach forward",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "raise your arm as high as it will go",
+      "region1": "reach up high",
+      "instr2": "lower your arm toward the floor",
+      "region2": "reach down low",
+      "success": true,
+      "first_success_step": 21,
+      "time_to_redirect": 1,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "extend upward toward the ceiling",
+      "region1": "reach up high",
+      "instr2": "retreat away from the front of the workspace",
+      "region2": "reach back",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "lower your arm toward the floor",
+      "region1": "reach down low",
+      "instr2": "extend forward away from your body",
+      "region2": "reach forward",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "drop your gripper down low",
+      "region1": "reach down low",
+      "instr2": "shift your gripper toward the right edge",
+      "region2": "reach right",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    }
+  ],
+  "set_b_switch_episodes": [
+    {
+      "instr1": "keep the robotic hand hovering exactly at the workspace's midpoint",
+      "region1": "center",
+      "instr2": "let the arm descend toward the lowest point it can reach",
+      "region2": "reach down low",
+      "success": true,
+      "first_success_step": 22,
+      "time_to_redirect": 2,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "push the end effector forward, away from the robot's base",
+      "region1": "reach forward",
+      "instr2": "bring the arm back in, closer to the robot's chassis",
+      "region2": "reach back",
+      "success": true,
+      "first_success_step": 21,
+      "time_to_redirect": 1,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "bring the arm back in, closer to the robot's chassis",
+      "region1": "reach back",
+      "instr2": "keep the robotic hand hovering exactly at the workspace's midpoint",
+      "region2": "center",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "carry the hand across the workspace toward its left boundary",
+      "region1": "reach left",
+      "instr2": "push the end effector forward, away from the robot's base",
+      "region2": "reach forward",
+      "success": false,
+      "first_success_step": null,
+      "time_to_redirect": null,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "swing the arm over so the gripper reaches the right-hand side of the space",
+      "region1": "reach right",
+      "instr2": "bring the arm back in, closer to the robot's chassis",
+      "region2": "reach back",
+      "success": true,
+      "first_success_step": 24,
+      "time_to_redirect": 4,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "send the arm climbing toward the highest point it can reach",
+      "region1": "reach up high",
+      "instr2": "swing the arm over so the gripper reaches the right-hand side of the space",
+      "region2": "reach right",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    },
+    {
+      "instr1": "let the arm descend toward the lowest point it can reach",
+      "region1": "reach down low",
+      "instr2": "bring the arm back in, closer to the robot's chassis",
+      "region2": "reach back",
+      "success": true,
+      "first_success_step": 23,
+      "time_to_redirect": 3,
+      "switch_step": 20,
+      "n_steps": 50
+    }
+  ]
+}

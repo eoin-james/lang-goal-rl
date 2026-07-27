@@ -1,0 +1,52 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/checkpoints/seed_1.zip (no new training, seed=1)
+literal_sanity_success_rate=1.000 over 50 episodes
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 7373.37it/s]
+set_a_no_switch_success_rate=1.000 instruction="settle into the middle of the workspace" region="center" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="return your hand to a neutral position" region="center" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="push your arm out in front of you" region="reach forward" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="extend forward away from your body" region="reach forward" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="draw your hand back toward yourself" region="reach back" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="retreat away from the front of the workspace" region="reach back" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="swing your arm over to the left" region="reach left" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="shift your gripper toward the left edge" region="reach left" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="swing your arm over to the right" region="reach right" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="shift your gripper toward the right edge" region="reach right" over 50 episodes
+set_a_no_switch_success_rate=0.000 instruction="raise your arm as high as it will go" region="reach up high" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="extend upward toward the ceiling" region="reach up high" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="lower your arm toward the floor" region="reach down low" over 50 episodes
+set_a_no_switch_success_rate=1.000 instruction="drop your gripper down low" region="reach down low" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="keep the robotic hand hovering exactly at the workspace's midpoint" region="center" over 50 episodes
+set_b_no_switch_success_rate=0.000 instruction="push the end effector forward, away from the robot's base" region="reach forward" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="bring the arm back in, closer to the robot's chassis" region="reach back" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="carry the hand across the workspace toward its left boundary" region="reach left" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="swing the arm over so the gripper reaches the right-hand side of the space" region="reach right" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="send the arm climbing toward the highest point it can reach" region="reach up high" over 50 episodes
+set_b_no_switch_success_rate=1.000 instruction="let the arm descend toward the lowest point it can reach" region="reach down low" over 50 episodes
+set_a_switch task_success=True time_to_redirect=2 instr1="settle into the middle of the workspace" region1="center" -> instr2="shift your gripper toward the left edge" region2="reach left"
+set_a_switch task_success=True time_to_redirect=3 instr1="return your hand to a neutral position" region1="center" -> instr2="swing your arm over to the right" region2="reach right"
+set_a_switch task_success=True time_to_redirect=3 instr1="push your arm out in front of you" region1="reach forward" -> instr2="extend upward toward the ceiling" region2="reach up high"
+set_a_switch task_success=True time_to_redirect=7 instr1="extend forward away from your body" region1="reach forward" -> instr2="drop your gripper down low" region2="reach down low"
+set_a_switch task_success=True time_to_redirect=3 instr1="draw your hand back toward yourself" region1="reach back" -> instr2="settle into the middle of the workspace" region2="center"
+set_a_switch task_success=False did not redirect instr1="retreat away from the front of the workspace" region1="reach back" -> instr2="return your hand to a neutral position" region2="center"
+set_a_switch task_success=True time_to_redirect=4 instr1="swing your arm over to the left" region1="reach left" -> instr2="extend upward toward the ceiling" region2="reach up high"
+set_a_switch task_success=True time_to_redirect=4 instr1="shift your gripper toward the left edge" region1="reach left" -> instr2="drop your gripper down low" region2="reach down low"
+set_a_switch task_success=False did not redirect instr1="swing your arm over to the right" region1="reach right" -> instr2="push your arm out in front of you" region2="reach forward"
+set_a_switch task_success=False did not redirect instr1="shift your gripper toward the right edge" region1="reach right" -> instr2="extend forward away from your body" region2="reach forward"
+set_a_switch task_success=True time_to_redirect=1 instr1="raise your arm as high as it will go" region1="reach up high" -> instr2="lower your arm toward the floor" region2="reach down low"
+set_a_switch task_success=False did not redirect instr1="extend upward toward the ceiling" region1="reach up high" -> instr2="retreat away from the front of the workspace" region2="reach back"
+set_a_switch task_success=False did not redirect instr1="lower your arm toward the floor" region1="reach down low" -> instr2="extend forward away from your body" region2="reach forward"
+set_a_switch task_success=False did not redirect instr1="drop your gripper down low" region1="reach down low" -> instr2="shift your gripper toward the right edge" region2="reach right"
+set_b_switch task_success=True time_to_redirect=3 instr1="keep the robotic hand hovering exactly at the workspace's midpoint" region1="center" -> instr2="let the arm descend toward the lowest point it can reach" region2="reach down low"
+set_b_switch task_success=True time_to_redirect=1 instr1="push the end effector forward, away from the robot's base" region1="reach forward" -> instr2="bring the arm back in, closer to the robot's chassis" region2="reach back"
+set_b_switch task_success=True time_to_redirect=3 instr1="bring the arm back in, closer to the robot's chassis" region1="reach back" -> instr2="keep the robotic hand hovering exactly at the workspace's midpoint" region2="center"
+set_b_switch task_success=False did not redirect instr1="carry the hand across the workspace toward its left boundary" region1="reach left" -> instr2="push the end effector forward, away from the robot's base" region2="reach forward"
+set_b_switch task_success=True time_to_redirect=3 instr1="swing the arm over so the gripper reaches the right-hand side of the space" region1="reach right" -> instr2="bring the arm back in, closer to the robot's chassis" region2="reach back"
+set_b_switch task_success=True time_to_redirect=4 instr1="send the arm climbing toward the highest point it can reach" region1="reach up high" -> instr2="swing the arm over so the gripper reaches the right-hand side of the space" region2="reach right"
+set_b_switch task_success=True time_to_redirect=3 instr1="let the arm descend toward the lowest point it can reach" region1="reach down low" -> instr2="bring the arm back in, closer to the robot's chassis" region2="reach back"
+set_a_switch_task_success_rate=0.571 redirect_success_rate=0.571 mean_time_to_redirect=3.375 median_time_to_redirect=3.0 n_episodes=14 n_redirected=8
+set_b_switch_task_success_rate=0.857 redirect_success_rate=0.857 mean_time_to_redirect=2.8333333333333335 median_time_to_redirect=3.0 n_episodes=7 n_redirected=6
+results_saved=/Users/eoinmca/Projects/lang-goal-rl/experiments/06_live_english_interface/runs/seed_1/results.json
