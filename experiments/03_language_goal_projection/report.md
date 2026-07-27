@@ -60,16 +60,16 @@ Aggregate across all 3 seeds x 14 instructions (42 success-rate samples): mean=0
 
 
 ### Charts
-![literal_goal_success_rate.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/literal_goal_success_rate.png)
+![literal_goal_success_rate.png](charts/literal_goal_success_rate.png)
 
-![language_goal_success_rate.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/language_goal_success_rate.png)
+![language_goal_success_rate.png](charts/language_goal_success_rate.png)
 
-![embedding_projection.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/embedding_projection.png)
+![embedding_projection.png](charts/embedding_projection.png)
 
 ### Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs/seed_2/stdout.log)
+- [stdout.log](runs/seed_0/stdout.log)
+- [stdout.log](runs/seed_1/stdout.log)
+- [stdout.log](runs/seed_2/stdout.log)
 
 ### Anomalies (factual, not judged)
 The language-goal substitution test failed near-uniformly: mean success rate 0.002 across all 3 seeds x 14 instructions x 50 episodes (vs. literal-goal 1.000 on the same 3 checkpoints, reproducing stage 2's baseline exactly). This is NOT seed noise -- all 3 seeds show the same near-total failure, so scaling to the full 10-seed budget was skipped per the tiered-seed strategy (a tier-1 result this uniformly bad would not change qualitatively with 7 more seeds).
@@ -207,17 +207,17 @@ Aggregate across all 3 seeds x 14 instructions (42 success-rate samples): mean=*
 | move your hand downward | reach down low | 0.040 |
 
 ### Charts
-![language_goal_success_rate_v2.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/language_goal_success_rate_v2.png)
+![language_goal_success_rate_v2.png](charts/language_goal_success_rate_v2.png)
 
-![embedding_projection_v2.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/embedding_projection_v2.png)
+![embedding_projection_v2.png](charts/embedding_projection_v2.png)
 
 ### Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v2/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v2/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v2/seed_2/stdout.log)
-- [norm_range_check.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/norm_range_check.log)
-- [collapse_diagnostic_v2_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/collapse_diagnostic_v2_stdout.log)
-- [projection_train_stdout_v2.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/projection_train_stdout_v2.log)
+- [stdout.log](runs_v2/seed_0/stdout.log)
+- [stdout.log](runs_v2/seed_1/stdout.log)
+- [stdout.log](runs_v2/seed_2/stdout.log)
+- [norm_range_check.log](artifacts/norm_range_check.log)
+- [collapse_diagnostic_v2_stdout.log](artifacts/collapse_diagnostic_v2_stdout.log)
+- [projection_train_stdout_v2.log](artifacts/projection_train_stdout_v2.log)
 
 ### Anomalies (factual, not judged)
 The norm-scale fix diagnosed in attempt 1 is confirmed fixed at the source: the fail-fast check (`artifacts/norm_range_check.log`) shows all 14 projected-instruction norms now inside the frozen encoder's real 2x reference band, versus attempt 1's 0.25-0.41 range (5-10x outside it). The collapse check still passes (24.68x margin, `artifacts/collapse_diagnostic_v2_stdout.log`), so distinct instructions are still not collapsing to one point.
@@ -316,18 +316,18 @@ Aggregate across all 3 seeds x 14 instructions (42 success-rate samples): mean=*
 | move your hand downward | reach down low | 0.140 |
 
 ### Charts
-![language_goal_success_rate_v3.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/language_goal_success_rate_v3.png)
+![language_goal_success_rate_v3.png](charts/language_goal_success_rate_v3.png)
 
-![embedding_projection_v3.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/embedding_projection_v3.png)
+![embedding_projection_v3.png](charts/embedding_projection_v3.png)
 
 ### Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v3/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v3/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v3/seed_2/stdout.log)
-- [projection_train_stdout_v3.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/projection_train_stdout_v3.log)
-- [norm_range_check_v3.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/norm_range_check_v3.log)
-- [collapse_diagnostic_v3_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/collapse_diagnostic_v3_stdout.log)
-- [direction_alignment_correlation.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/artifacts/direction_alignment_correlation.log)
+- [stdout.log](runs_v3/seed_0/stdout.log)
+- [stdout.log](runs_v3/seed_1/stdout.log)
+- [stdout.log](runs_v3/seed_2/stdout.log)
+- [projection_train_stdout_v3.log](artifacts/projection_train_stdout_v3.log)
+- [norm_range_check_v3.log](artifacts/norm_range_check_v3.log)
+- [collapse_diagnostic_v3_stdout.log](artifacts/collapse_diagnostic_v3_stdout.log)
+- [direction_alignment_correlation.log](artifacts/direction_alignment_correlation.log)
 
 ### Anomalies (factual, not judged)
 The fail-fast norm-range check FAILED this attempt (8/14 instructions out of the 2x reference band) even though the projection's training loss converged almost exactly to its fixed target (mean loss 0.0000 over the last 20 steps) -- this is the check's own documented limitation (module docstring: 'no longer load-bearing for correctness... an in-range norm is essentially automatic' only holds if the true per-region centroid norms cluster near the box-wide reference mean, which several directional regions' true centroids do not) firing on real region geometry, not a training defect. Verified this is not a repeat of attempt 1's bug: attempt 1's projection was 5-10x *outside* the range in the *high* direction (0.25-0.41 vs. reference mean 0.039) because the InfoNCE loss had no scale term at all; attempt 3's out-of-range instructions are all *slightly below* the lower bound (0.0163-0.0195 vs. lower bound 0.0196) because those regions' true target norms are genuinely smaller than the box-wide average -- a fundamentally different, much smaller, and structurally-explained deviation. Proceeded to the RL eval regardless, per the module docstring's own framing of this check as a heuristic proxy, superseded by direct-target-matching for correctness.
@@ -458,18 +458,18 @@ one step, exactly as the attempt-3 reviewer's math predicted.
 | move your hand downward | reach down low | 1.000 |
 
 ### Charts
-![language_goal_success_rate_v4.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/language_goal_success_rate_v4.png)
+![language_goal_success_rate_v4.png](charts/language_goal_success_rate_v4.png)
 
 Embedding-projection PCA is unchanged from attempt 3 (the projection
 checkpoint was not retrained) — see attempt 3's
 `charts/embedding_projection_v3.png` above, re-embedded here for continuity:
 
-![embedding_projection_v3.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/charts/embedding_projection_v3.png)
+![embedding_projection_v3.png](charts/embedding_projection_v3.png)
 
 ### Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v4/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v4/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/03_language_goal_projection/runs_v4/seed_2/stdout.log)
+- [stdout.log](runs_v4/seed_0/stdout.log)
+- [stdout.log](runs_v4/seed_1/stdout.log)
+- [stdout.log](runs_v4/seed_2/stdout.log)
 
 ### Anomalies (factual, not judged)
 The language-goal substitution eval hit exactly 1.000 on all 42 seed x

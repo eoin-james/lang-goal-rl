@@ -37,7 +37,7 @@ its actual measured success rate.
 **Repo is live:** [graylayer-labs/lang-goal-rl](https://github.com/graylayer-labs/lang-goal-rl) —
 pushed and up to date, including every attempt and its diagnosis. Also has
 a bibliography (`LITERATURE.md`) of the real papers behind each stage —
-found 3 of the original citation links pointed to the wrong papers,
+found 4 of the original citation links pointed to the wrong papers,
 documented rather than silently fixed.
 
 <details>

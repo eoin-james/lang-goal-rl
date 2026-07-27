@@ -36,23 +36,23 @@
 
 
 ## Charts
-![multi_seed_success_rate.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/charts/multi_seed_success_rate.png)
+![multi_seed_success_rate.png](charts/multi_seed_success_rate.png)
 
-![stage1_vs_stage2_comparison.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/charts/stage1_vs_stage2_comparison.png)
+![stage1_vs_stage2_comparison.png](charts/stage1_vs_stage2_comparison.png)
 
-![embedding_projection.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/charts/embedding_projection.png)
+![embedding_projection.png](charts/embedding_projection.png)
 
 ## Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_2/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_3/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_4/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_5/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_6/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_7/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_8/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/02_contrastive_goal_embedding/runs/seed_9/stdout.log)
+- [stdout.log](runs/seed_0/stdout.log)
+- [stdout.log](runs/seed_1/stdout.log)
+- [stdout.log](runs/seed_2/stdout.log)
+- [stdout.log](runs/seed_3/stdout.log)
+- [stdout.log](runs/seed_4/stdout.log)
+- [stdout.log](runs/seed_5/stdout.log)
+- [stdout.log](runs/seed_6/stdout.log)
+- [stdout.log](runs/seed_7/stdout.log)
+- [stdout.log](runs/seed_8/stdout.log)
+- [stdout.log](runs/seed_9/stdout.log)
 
 ## Anomalies (factual, not judged)
 All 10 stage-2 seeds reached >=0.98 success rate — no failures to cross-check.

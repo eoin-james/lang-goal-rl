@@ -80,15 +80,15 @@ Aggregate across 3 seeds x 14 held-out instructions (42 success-rate samples): m
 
 
 ### Charts
-![held_out_success_rate.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/held_out_success_rate.png)
+![held_out_success_rate.png](charts/held_out_success_rate.png)
 
-![embedding_projection_open_vocab.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/embedding_projection_open_vocab.png)
+![embedding_projection_open_vocab.png](charts/embedding_projection_open_vocab.png)
 
 ### Raw output
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/seed_2/stdout.log)
-- [semantic_neighbor_diagnostic_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/artifacts/semantic_neighbor_diagnostic_stdout.log)
+- [stdout.log](runs/seed_0/stdout.log)
+- [stdout.log](runs/seed_1/stdout.log)
+- [stdout.log](runs/seed_2/stdout.log)
+- [semantic_neighbor_diagnostic_stdout.log](artifacts/semantic_neighbor_diagnostic_stdout.log)
 
 ### Anomalies (factual, not judged)
 Held-out RL success rate collapsed to near-zero: 1/42 samples nonzero (mean 0.024, median 0.000), against a 1.000 training-vocabulary baseline using the identical checkpoints, projection, and eval protocol -- the only variable that changed is which 14 instructions were projected. This tracks the semantic-neighbor diagnostic's finding directly: only 4/14 held-out paraphrases' projected embeddings land nearest their own true region, so most held-out instructions send the policy toward the wrong region entirely -- well outside FetchReach's 0.05m success radius, not a near-miss. Literal-goal control is unchanged and a clean 1.000 on all 3 seeds, ruling out a policy or checkpoint problem; this is specific to the projection's direction accuracy for sentence embeddings it was never trained on.
@@ -157,7 +157,7 @@ Every k tried beat the MLP's 28.6% baseline; k=1 (pure 1-nearest-neighbor, no bl
 At k=1, 6 instructions flip WRONG (MLP) -> correct (NN); no instruction flips the other direction, so k=1's higher aggregate accuracy is a strict improvement per-instruction, not offset by new losses elsewhere. At k=3 and k=5, some previously-correct MLP classifications (e.g. "shift your gripper toward the right edge", "raise your arm as high as it will go") flip to WRONG under blending -- averaging in centroids further from the query's true region evidently hurts those specific instructions even as it helps others.
 
 **Script:** `experiments/04_open_vocabulary/nn_ceiling_test.py`
-**Raw output:** [nn_ceiling_test_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/nn_ceiling_test_stdout.log)
+**Raw output:** [nn_ceiling_test_stdout.log](runs/nn_ceiling_test_stdout.log)
 
 ---
 
@@ -290,21 +290,21 @@ Aggregate across 3 seeds x 14 original instructions (42 success-rate samples): m
 | Held-out RL nonzero samples | 1/42 | 4/42 | n/a |
 
 ### Charts
-![held_out_success_rate_v2.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/held_out_success_rate_v2.png)
+![held_out_success_rate_v2.png](charts/held_out_success_rate_v2.png)
 
-![stage3_vocab_regression_check_v2.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/stage3_vocab_regression_check_v2.png)
+![stage3_vocab_regression_check_v2.png](charts/stage3_vocab_regression_check_v2.png)
 
-![embedding_projection_open_vocab_v2.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/embedding_projection_open_vocab_v2.png)
+![embedding_projection_open_vocab_v2.png](charts/embedding_projection_open_vocab_v2.png)
 
 ### Raw output
-- [projection_train_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/projection_train_stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/seed_2/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/regression_check/seed_0/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/regression_check/seed_1/stdout.log)
-- [stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt2/regression_check/seed_2/stdout.log)
-- [semantic_neighbor_diagnostic_v2_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/artifacts/semantic_neighbor_diagnostic_v2_stdout.log)
+- [projection_train_stdout.log](runs/attempt2/projection_train_stdout.log)
+- [stdout.log](runs/attempt2/seed_0/stdout.log)
+- [stdout.log](runs/attempt2/seed_1/stdout.log)
+- [stdout.log](runs/attempt2/seed_2/stdout.log)
+- [stdout.log](runs/attempt2/regression_check/seed_0/stdout.log)
+- [stdout.log](runs/attempt2/regression_check/seed_1/stdout.log)
+- [stdout.log](runs/attempt2/regression_check/seed_2/stdout.log)
+- [semantic_neighbor_diagnostic_v2_stdout.log](artifacts/semantic_neighbor_diagnostic_v2_stdout.log)
 
 ### Anomalies (factual, not judged)
 Semantic-neighbor accuracy more than doubled: 0.286 (4/14, attempt 1) -> 0.643 (9/14, attempt 2) -- closer to, though still below, the NN-ceiling's 0.714 (10/14). Held-out RL success improved in the same direction but by a smaller margin: mean 0.024 -> 0.095, nonzero samples 1/42 -> 4/42 -- still far short of the 1.000 training-vocabulary baseline and still a FAIL-magnitude gap by any reasonable reading, not graceful degradation. Data augmentation helped -- direction, not magnitude, is the honest summary.
@@ -468,12 +468,12 @@ This is the reviewer's Part A diagnostic from attempt 2's verdict, run before an
 | reach down low | 2 | 1.000 | 1.000 | 1.000 | 1.000 | 0.000 | 0.000 | 0.000 |
 
 ### Charts
-![region_tolerance_curves.png](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/charts/region_tolerance_curves.png)
+![region_tolerance_curves.png](charts/region_tolerance_curves.png)
 
 ### Raw output
-- [seed_0/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_0/stdout.log)
-- [seed_1/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_1/stdout.log)
-- [seed_2/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt3_tolerance/seed_2/stdout.log)
+- [seed_0/stdout.log](runs/attempt3_tolerance/seed_0/stdout.log)
+- [seed_1/stdout.log](runs/attempt3_tolerance/seed_1/stdout.log)
+- [seed_2/stdout.log](runs/attempt3_tolerance/seed_2/stdout.log)
 
 ### Anomalies (factual, not judged)
 Per-seed detail above shows real seed-to-seed variance at intermediate magnitudes (e.g. a region's 3 seeds do not always cross a threshold at the same magnitude) -- expected given only 50 episodes per (seed, region, magnitude) combo and a single fixed random perturbation direction per (region, magnitude) pair (no averaging over multiple directions at the same magnitude). The magnitude=0.0 control's mean success rate per region is reported directly in the full table above rather than assumed to be a clean 1.000 everywhere -- any region below 1.000 there reflects the eval loop's own episode-to-episode variance (e.g. a residual SAC deterministic-eval-collapse signature per `ROADMAP.md`'s known risk), not the noise-injection mechanism, since magnitude 0.0 injects the zero vector regardless of the drawn direction.
@@ -620,7 +620,7 @@ RL result below, which goes the other way.
 | drop your gripper down low | reach down low | reach down low | yes | reach down low | yes |
 
 **Script:** `nn_lookup_classification.py`
-**Raw output:** [classification_stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/classification_stdout.log)
+**Raw output:** [classification_stdout.log](runs/attempt4_nn_lookup/classification_stdout.log)
 
 ### Part 2 -- RL success rate on held-out phrasings (the actual generalization test)
 
@@ -668,9 +668,9 @@ default, not evidence of a defect.
 
 **Scripts:** `eval_nn_lookup_held_out.py`
 **Raw output:**
-- [seed_0/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_0/stdout.log)
-- [seed_1/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_1/stdout.log)
-- [seed_2/stdout.log](/Users/eoinmca/Projects/lang-goal-rl/experiments/04_open_vocabulary/runs/attempt4_nn_lookup/seed_2/stdout.log)
+- [seed_0/stdout.log](runs/attempt4_nn_lookup/seed_0/stdout.log)
+- [seed_1/stdout.log](runs/attempt4_nn_lookup/seed_1/stdout.log)
+- [seed_2/stdout.log](runs/attempt4_nn_lookup/seed_2/stdout.log)
 
 #### Per-instruction detail (mean success rate across all 3 seeds)
 
