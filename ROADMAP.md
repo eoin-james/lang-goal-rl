@@ -16,6 +16,17 @@ dynamics, typically 10-50x the training budget in the literature).
 Generalization to harder tasks is explicitly out of scope here and belongs
 in the final writeup as future work, not as an unproven claim.
 
+**Trivial-baseline sanity check (audited, all stages clear it):** a demo-GIF
+investigation noticed one unusually close start-to-goal episode and raised
+the question of whether FetchReach's goal distribution is easy enough that
+these success rates aren't measuring real learned behavior. Audited from
+scratch, reproducibly: `experiments/00_trivial_baseline_audit/`. A do-nothing
+policy succeeds 1.8% of episodes, a random-action policy 0.4% — every
+stage's real result sits 30-56x above that floor. See that report for the
+full numbers and one honest caveat it carries forward (stages 1-3/5's
+1.000 scores are at an oracle-solvable ceiling, an informativeness limit,
+not a validity problem).
+
 | # | Stage | Reuse | New build | Proof gate | Status | Report |
 |---|-------|-------|-----------|------------|--------|--------|
 | 0 | Plumbing | gymnasium-robotics `FetchReach-v4` (MuJoCo-backed), env reset/step loop | — | Loop runs end-to-end: reset, inspect Dict obs (`observation`/`achieved_goal`/`desired_goal`), step | **Done** | — |

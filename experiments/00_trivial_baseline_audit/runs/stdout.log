@@ -1,0 +1,20 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+=== Reset-to-goal distance distribution ===
+n_samples=500
+success_threshold=0.0500 m
+min=0.0199 m
+p10=0.0851 m
+p25=0.1141 m
+median=0.1449 m
+p75=0.1724 m
+p90=0.1986 m
+max=0.2436 m
+fraction_within_success_threshold=0.0220
+
+=== Trivial-policy success rates ===
+no-op: success_rate=0.0180 (9/500 episodes), median_steps_to_success=1.0
+random: success_rate=0.0040 (2/500 episodes), median_steps_to_success=12.0
+oracle: success_rate=1.0000 (500/500 episodes), median_steps_to_success=3.0
+
+chart written to /Users/eoinmca/Projects/lang-goal-rl/experiments/00_trivial_baseline_audit/charts/reset_distance_histogram.png
+results written to /Users/eoinmca/Projects/lang-goal-rl/experiments/00_trivial_baseline_audit/runs/results.json

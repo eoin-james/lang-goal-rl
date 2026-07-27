@@ -1,0 +1,37 @@
+{
+  "env_id": "FetchReach-v4",
+  "max_episode_steps": 50,
+  "seed": 0,
+  "reset_distance_distribution": {
+    "n_samples": 500,
+    "min": 0.01993411138931072,
+    "p10": 0.08510784530116595,
+    "p25": 0.11412881480567368,
+    "median": 0.1448823419895065,
+    "p75": 0.17236957619587379,
+    "p90": 0.1986493369729801,
+    "max": 0.2436072840871137,
+    "fraction_within_success_threshold": 0.022,
+    "success_threshold": 0.05
+  },
+  "trivial_policies": {
+    "no-op": {
+      "n_episodes": 500,
+      "n_successes": 9,
+      "success_rate": 0.018,
+      "median_steps_to_success": 1.0
+    },
+    "random": {
+      "n_episodes": 500,
+      "n_successes": 2,
+      "success_rate": 0.004,
+      "median_steps_to_success": 12.0
+    },
+    "oracle": {
+      "n_episodes": 500,
+      "n_successes": 500,
+      "success_rate": 1.0,
+      "median_steps_to_success": 3.0
+    }
+  }
+}
