@@ -75,6 +75,26 @@ class TestLiveGoalControllerLookup:
         assert isinstance(result, torch.Tensor)
         assert result.dtype == torch.float32
 
+    def test_match_exposes_the_nearest_reference_and_region(self) -> None:
+        controller = LiveGoalController(_make_encoder(), n_target_samples=20, seed=0)
+
+        match = controller.match_instruction("reach up high")
+
+        assert match.reference_instruction == "reach up high"
+        assert match.region_name == "reach up high"
+        assert match.distance < 1e-5
+        assert match.embedding.shape == (16,)
+
+    def test_match_rejects_an_empty_instruction(self) -> None:
+        controller = LiveGoalController(_make_encoder(), n_target_samples=20, seed=0)
+
+        try:
+            controller.match_instruction("  ")
+        except ValueError as error:
+            assert str(error) == "instruction must not be empty"
+        else:
+            raise AssertionError("expected an empty instruction to be rejected")
+
     def test_a_known_reference_sentence_maps_to_exactly_its_own_cached_target_at_k1(self) -> None:
         """k=1 exact-copy semantics (stage 4's confirmed-best mode, see
         ROADMAP.md): querying with a sentence that is itself one of the 84

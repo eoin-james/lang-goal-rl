@@ -32,11 +32,16 @@ only ever encodes the one new instruction it's given.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import numpy as np
 import torch
 
-from lang_goal_rl.combined_vocabulary import build_combined_reference
+from lang_goal_rl.combined_vocabulary import (
+    build_combined_reference,
+    combined_instructions_and_regions,
+)
 from lang_goal_rl.language_embedding import encode_instructions
 from lang_goal_rl.language_goal_projection import DEFAULT_N_TARGET_SAMPLES
 from lang_goal_rl.nearest_neighbor_projection import nearest_neighbor_projection
@@ -47,6 +52,16 @@ if TYPE_CHECKING:
 DEFAULT_K = 1
 """Stage 4's confirmed-best mode: exact nearest-neighbor copy-through, no
 blending -- see the module docstring."""
+
+
+@dataclass(frozen=True)
+class GoalMatch:
+    """Result of matching one live instruction against the reference vocabulary."""
+
+    embedding: torch.Tensor
+    reference_instruction: str
+    region_name: str
+    distance: float
 
 
 class LiveGoalController:
@@ -86,6 +101,9 @@ class LiveGoalController:
         self._reference_embeddings, self._reference_targets = build_combined_reference(
             goal_encoder, n_samples=n_target_samples, seed=seed,
         )
+        self._reference_instructions, self._reference_regions = (
+            combined_instructions_and_regions()
+        )
 
     def instruction_to_goal_embedding(self, instruction: str) -> torch.Tensor:
         """Map one live English instruction to its 16-dim goal embedding.
@@ -109,8 +127,31 @@ class LiveGoalController:
             target, not an approximation.
 
         """
+        return self.match_instruction(instruction).embedding
+
+    def match_instruction(self, instruction: str) -> GoalMatch:
+        """Map an instruction and describe the nearest known reference.
+
+        The returned reference metadata makes the k=1 lookup observable in
+        interactive tools. ``embedding`` uses the configured value of ``k``;
+        the descriptive sentence, region, and distance always refer to the
+        single nearest reference.
+        """
+        if not instruction.strip():
+            msg = "instruction must not be empty"
+            raise ValueError(msg)
+
         query_embedding = encode_instructions([instruction])[0]
+        distances = np.linalg.norm(
+            self._reference_embeddings - query_embedding, axis=1
+        )
+        nearest_index = int(np.argmin(distances))
         blended = nearest_neighbor_projection(
             query_embedding, self._reference_embeddings, self._reference_targets, k=self._k,
         )
-        return torch.from_numpy(blended).to(torch.float32)
+        return GoalMatch(
+            embedding=torch.from_numpy(blended).to(torch.float32),
+            reference_instruction=self._reference_instructions[nearest_index],
+            region_name=self._reference_regions[nearest_index],
+            distance=float(distances[nearest_index]),
+        )
