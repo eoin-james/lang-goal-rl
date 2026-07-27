@@ -768,3 +768,96 @@ reviewer.
 
 ### Reviewer verdict
 
+**Verdict: PASS (conditional — ROADMAP must be updated with the conditions below before advancing to stage 5)**
+
+**Check 1 -- number verification.** Every reported number independently
+re-derived from the raw per-seed and classification logs and confirmed
+exact: k=1 classification 0.571 (8/14), RL mean=0.5714/median=1.0000/
+nonzero=24/42; k=3 classification 0.714 (10/14), RL mean=0.3810/
+median=0.0000/nonzero=16/42. Per-instruction, per-seed values all match.
+Literal-goal control confirmed 1.000 on all 3 seeds, both k. No inflation,
+no substitution.
+
+**Check 2 -- the k=1-vs-k=3 rank inversion, resolved.** k=1 always returns
+an *exact copy* of one reference sentence's target -- and because every
+reference target equals its region's exact centroid (same
+`(n_samples=1000, seed=0)` population as training throughout this stage),
+k=1's classification accuracy maps 1:1 onto its RL success: correct
+classification -> exact centroid -> guaranteed success; wrong
+classification -> wrong centroid -> guaranteed failure. k=3's
+distance-weighted blend of 3 targets, by contrast, is *never* exactly a
+centroid (observed blend-to-centroid distances: 0.005-0.029) -- even when
+k=3 classifies correctly, the blended point can land in a direction the
+policy doesn't tolerate (e.g. "swing your arm over to the right":
+correctly classified, blended point 0.0152 from centroid, RL=0.000 on all
+3 seeds). This is the "direction-sensitivity" finding from attempt 3's
+diagnostic, now demonstrated concretely: smoothing (k=3) improves
+*classification* by diluting nearest-neighbor noise, but degrades *RL
+success* by introducing directional deviation that k=1's exact-centroid
+copy never has. **k=1 is the correct choice for this use case precisely
+because it never deviates from a known-good point.**
+
+**Check 3 -- does 0.571 mean/1.000 median satisfy "graceful degradation on
+unseen phrasing; semantic neighbors land near each other in goal space"?**
+Borderline, but yes, on balance. Degradation: 1.000 (training vocab) ->
+0.571 (held-out) is a real drop but not a collapse -- categorically
+different from attempts 1-3's 0.024-0.095 near-total failure. The
+per-instruction pattern is binary (8/14 always succeed, 6/14 always fail)
+rather than a smooth quality gradient, but at the population level this
+still reads as "graceful" relative to the qualitative bar the gate sets, not
+a hard numeric threshold like stages 1-3's ~1.0 requirement. Semantic
+neighbors landing near each other: true for the 8 correctly-classified
+instructions (they land at the *exact* same centroid as their training-
+vocabulary neighbors) but not true for the other 6, where a same-concept
+paraphrase lands at a wrong-region centroid entirely. This is a partial,
+not complete, satisfaction of that sub-criterion -- but the failures are
+fully explained (specific reference-vocabulary gaps, not a fundamental
+architecture problem) and have a clear remediation path (expand reference
+coverage), which is enough to call this a pass rather than another
+inconclusive round.
+
+**Check 4 -- architectural sanity check for stages 5/6 (mandatory
+condition, not optional).** ROADMAP's stage-4 "New build" column currently
+says "learned projection layer, fixed instruction vocabulary" -- attempt 4
+replaces that learned projection entirely with a zero-training k=1
+nearest-neighbor lookup. This is a real architectural change, not a
+tuning fix, and must be reflected in ROADMAP's row, not left implicit in
+this report only. More importantly: **k-NN's quality is bounded by
+reference-vocabulary density.** 84 sentences got 8/14 (57%) held-out
+coverage; stage 6's "ad-hoc live phrasings" implies unbounded input
+diversity, which 84 fixed reference sentences will not cover. This is not
+a stage-4 blocker (the gate is about *this* stage's fixed, bounded held-out
+set) but it is a load-bearing fact stages 5/6 must design around from the
+start -- log it as a new Known risk now rather than rediscover it during
+stage 6, the way stage 3's eval-protocol bug and stage 4's own MLP-overfit
+bug were each rediscovered the hard way.
+
+**Check 5 -- known-risks cross-check.** Region-vs-point (stage 3): correctly
+applied throughout, not re-triggered. Projection overfitting (attempt 1):
+CONFIRMED and now RESOLVED -- removing the MLP entirely (0.571) vs. its
+best result (0.095) proves the MLP was actively destroying signal the raw
+embedding space already carried; the attempt 1->2->3->4 arc is now a
+complete, coherent diagnosis. Direction-sensitivity (attempt 3): CONFIRMED
+from a new angle by the k=1-vs-k=3 inversion, and now understood well
+enough to design around (pick k=1, land exactly on known-good points,
+rather than trying to characterize or fix tolerance directly). SAC
+eval-collapse and metric-mismatch: not implicated, as in every prior
+attempt.
+
+**Recommendation to manager -- mark Done, with these mandatory ROADMAP
+updates in the same edit (not deferred):**
+1. Update stage-4's "New build" column to name the k=1 nearest-neighbor
+   lookup as the actual resolution, not a learned projection layer.
+2. Log a new Known risk: nearest-neighbor lookup's generalization ceiling
+   is bounded by reference-vocabulary coverage density relative to the
+   input distribution -- 84 sentences got 0.571 held-out success here;
+   stage 6's genuinely open-ended live phrasing will need either a much
+   larger/denser reference set or a hybrid mechanism, and the 6/14 failures
+   here already show the specific failure mode to expect (a held-out
+   phrase landing closer, in raw sentence-embedding space, to a
+   wrong-region reference sentence than to any correct-region one).
+3. Update stage-4 Status to "Done (4 attempts, 3 seeds) -- k=1 NN lookup
+   over an 84-sentence combined vocabulary; 0.571 mean / 1.000 median RL
+   success on 14 held-out paraphrases, zero-shot, no retraining. See Known
+   risks for the reference-coverage scalability condition before stage 6."
+

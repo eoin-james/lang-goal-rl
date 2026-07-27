@@ -22,7 +22,7 @@ in the final writeup as future work, not as an unproven claim.
 | 1 | Goal-conditioned baseline (UVFA + HER) | SB3 `SAC` + `HerReplayBuffer`, same env | multi-goal conditioning on literal xyz goal (`experiments/01_uvfa_her_baseline/train.py`) | Near-100% success rate over held-out eval episodes on FetchReach | **Done (8/10 seeds, 2 show known SAC eval-collapse — see Known risks)** | [report](experiments/01_uvfa_her_baseline/report.md) |
 | 2 | Learned continuous goal embedding | Eysenbach et al. Contrastive RL architecture (scoped adaptation — frozen encoder pretrained via InfoNCE, not a full critic-loss replacement) | swap literal goal for a learned latent (`experiments/02_contrastive_goal_embedding/`) | Success rate matches stage-1 baseline within tolerance; distance-in-latent correlates with true task distance | **Done (10/10 seeds ≥0.98, r=0.571 held-out distance correlation)** | [report](experiments/02_contrastive_goal_embedding/report.md) |
 | 3 | Frozen language embedding → goal space | LIV / VLM-RM reward pipeline (frozen CLIP-text or sentence-transformer) | learned projection layer, fixed instruction vocabulary | Success rate on language goals ≈ stage-2 baseline; projection doesn't collapse distinct instructions to one point | **Done (4 attempts, 3 seeds) — 1.000 success matching stage-2 baseline exactly, collapse margin 9.70x. See Known risks for the eval-protocol lesson.** | [report](experiments/03_language_goal_projection/report.md) |
-| 4 | Open vocabulary | same pipeline | held-out paraphrases / compositional instructions | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **FAIL (3 seeds, 3 attempts) — attempt 2's data augmentation got classification near the zero-training ceiling (0.643 vs 0.714) but RL success stayed low (0.095 mean/0.000 median). Attempt 3's tolerance diagnostic was inconclusive on "why" but pointed at a decisive next test: swap the MLP for zero-training NN lookup. Running now.** | [report](experiments/04_open_vocabulary/report.md) |
+| 4 | Open vocabulary | same pipeline | k=1 zero-training nearest-neighbor lookup over an 84-sentence combined vocabulary (`experiments/04_open_vocabulary/`) — resolution changed from the originally-planned learned projection layer after 3 failed attempts; see Known risks | Graceful degradation on unseen phrasing; semantic neighbors land near each other in goal space | **Done (4 attempts, 3 seeds) — k=1 NN lookup over an 84-sentence combined vocabulary; 0.571 mean / 1.000 median RL success on 14 held-out paraphrases, zero-shot, no retraining. See Known risks for the reference-coverage scalability condition before stage 6.** | [report](experiments/04_open_vocabulary/report.md) |
 | 5 | Mid-episode re-goaling | HIRO / Hi-Robot / Hindsight Instruction Relabeling as literature reference (no direct codebase) | env wrapper injecting a new instruction mid-episode | Zero-shot goal-swap success rate vs. fresh-episode baseline; if it degrades, fine-tune with injected switches and re-measure | Not started | — |
 | 6 | Live English interface | everything above + live embedding inference | real-time text → embedding → goal loop | End-to-end demo across ad-hoc live phrasings: task success + time-to-redirect | Not started | — |
 
@@ -142,3 +142,33 @@ numbers, charts, and any candidate comparison live in the linked report._
   lookup on the combined vocabulary, to isolate whether the MLP's own
   learned directional distortion — not policy tolerance — is the real
   bottleneck).
+  **Resolution (attempt 4, stage 4 now Done):** the MLP's own learned
+  directional distortion was confirmed as the actual bottleneck, not policy
+  tolerance. Replacing it entirely with a zero-training k=1
+  nearest-neighbor lookup (return the nearest of 84 reference sentences'
+  *exact* known-good target, never an approximation) took held-out RL
+  success from 0.095 mean/0.000 median to 0.571 mean/1.000 median. k=1
+  beat k=3 specifically because k=1 always lands exactly on a region
+  centroid (zero directional deviation), while k=3's blended output never
+  does — direct confirmation that direction-sensitivity, not distance
+  alone, drives success once classification is reasonably accurate.
+- **Nearest-neighbor lookup's generalization ceiling is bounded by
+  reference-vocabulary coverage density (confirmed stage 4, attempt 4 —
+  read before stage 6 design starts)**: stage 4 passed by replacing the
+  learned projection with a k=1 nearest-neighbor lookup over 84 fixed
+  reference sentences, achieving 0.571 mean/1.000 median RL success on 14
+  held-out paraphrases. This works because 84 sentences already cover the
+  7-region vocabulary densely enough that most held-out phrasings land
+  closer (in raw sentence-embedding space) to a same-region reference than
+  a wrong-region one — but the 6/14 failures are exactly the phrasings
+  where that isn't true, i.e. coverage gaps, not a fundamental flaw. Stage
+  6's proof gate is "ad-hoc live phrasings," implying open-ended input
+  diversity that a fixed 84-sentence reference set will not densely cover.
+  **Stage 5/6 must not assume this mechanism scales for free** — either
+  grow the reference set substantially and validate coverage density
+  empirically before relying on it, or design a hybrid mechanism (e.g.
+  NN lookup for in-coverage inputs, a fallback for out-of-distribution
+  ones) rather than rediscovering this gap live in stage 6, the way stage
+  3's eval bug and stage 4's own MLP-overfit bug were each found the hard
+  way. See `experiments/04_open_vocabulary/report.md`'s attempt-4 reviewer
+  verdict for the full mechanism analysis.

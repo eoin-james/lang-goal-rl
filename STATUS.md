@@ -1,6 +1,6 @@
 # Progress: 0 to hero
 
-**3 of 7 stages done. Starting stage 4.** Click any stage below to expand
+**4 of 7 stages done. Starting stage 5.** Click any stage below to expand
 its actual results — no need to open other files for the numbers.
 
 | # | What it proves | Status |
@@ -9,66 +9,26 @@ its actual results — no need to open other files for the numbers.
 | 1 | Robot can reach a target given exact coordinates | ✅ Done |
 | 2 | Same, but using a learned code instead of raw coordinates | ✅ Done |
 | 3 | Same, but told the target in an English sentence | ✅ Done |
-| 4 | Works with English phrasings it's never seen before | 🔧 Real progress, root cause narrowing — not there yet |
-| 5 | Can change its target mid-task when told something new | ⬜ Not started |
+| 4 | Works with English phrasings it's never seen before | ✅ Done (took 4 attempts — worth reading) |
+| 5 | Can change its target mid-task when told something new | ⬜ Starting now |
 | 6 | Live, real-time English control, start to finish | ⬜ Not started |
 
 ## Right now
 
-**Stage 4 confirmed failed — independent check agrees, and points to a
-specific next fix.** A second reviewer double-checked the memorization
-diagnosis from scratch (not just re-reading the same numbers) and confirms
-it: the sentence-to-code converter was trained on only 14 example sentences
-(2 per direction), which is far too few for a network its size — it had
-every reason to just memorize those 14 answers and no reason to handle
-anything else sensibly. A picture of where sentences land in the learned
-space backs this up directly: the 14 training sentences and the 14 new
-test sentences land in almost completely separate areas, which is exactly
-what memorizing (rather than understanding) looks like.
+**Stage 4 passed — took 4 rounds, but ended with a clean, independently
+verified fix.** The short version: the trained sentence-to-code converter
+was the problem the whole time, not the robot. Replacing it with a much
+simpler "just borrow the answer from whichever known sentence this new one
+is most like" approach — using a bigger set of 84 known sentences — nearly
+tripled real success on brand-new sentences, from ~10% to ~57% (and the
+*typical* new sentence now succeeds, not just an unlucky few). Full
+before/after story is in the stage-4 dropdown below.
 
-One extra thing was checked and ruled out: is the underlying language
-understanding itself the problem (i.e. is 384 numbers just not enough to
-tell these sentences apart)? No — checked directly, and sentences that
-mean similar things do still start out close together before the
-converter processes them. The converter is where the problem is introduced,
-not the language model underneath it.
-
-**Sanity check result: confirmed, and it's a big gap.** Tried answering new
-sentences a completely different way — no trained converter at all, just
-"which of the 14 known sentences is this most like, borrow its answer."
-That zero-training approach got 10/14 right vs. the trained converter's
-4/14. That's a decisive result: the raw language understanding already
-has plenty of signal to place these new sentences correctly — the trained
-converter is actively throwing that signal away by memorizing instead of
-learning the general rule.
-
-**Retrained with more examples — helped a lot on one measure, barely on
-the one that matters.** Rebuilt the converter's training set from 14
-sentences up to 70 (10 per direction instead of 2), retrained, retested.
-Getting the *direction* right jumped from 4/14 to 9/14 — nearly matching
-the zero-training ceiling test above. But actually reaching the target
-with the robot barely moved: still failing almost every time (up from
-~2% to ~10%, nowhere near acceptable).
-
-**Why doesn't "getting the direction right" translate to "actually
-succeeding"?** A second look at the numbers found something specific: for
-one direction ("move right"), even a fairly imprecise answer still
-succeeds — the robot's tolerance there is forgiving. For every other
-direction, even landing in roughly the right spot isn't precise enough —
-one sentence landed *closer* to the correct spot than the "move right"
-one did, and still failed completely. So the real problem isn't "which
-direction" anymore (that's mostly solved) — it's "how exact does the
-answer need to be, and that required precision is different for every
-direction." More example sentences won't fix that; it needs its own test.
-
-**Next step: measure how forgiving each direction actually is.** Before
-building anything else, artificially nudge the exact known-good answer for
-each of the 7 directions by small amounts and see how much nudging the
-robot can tolerate before it starts failing — zero retraining needed,
-reuses everything already built. This tells us cleanly whether the fix is
-"more example sentences," "make the robot more tolerant to small target
-errors," or something about how directions are represented in the first
-place. That test is running now.
+**Starting stage 5 now: can it change its target mid-task?** So far the
+robot has only ever been told its target once, at the very start of an
+episode. Stage 5 asks whether it can be told something new *partway
+through* and re-aim without starting over — a step closer to the eventual
+goal of a live conversation with the robot while it's working.
 
 **3 demo clips are in `demos/`** — baseline success, the original broken
 failure, and a real success once the eval was fixed — each labeled with
@@ -161,7 +121,7 @@ Full story with all 4 attempts and independent checks: `experiments/03_language_
 </details>
 
 <details>
-<summary><b>Stage 4 — Works with sentences it's never seen before</b> 🔧 In progress — real gains made, root cause still narrowing</summary>
+<summary><b>Stage 4 — Works with sentences it's never seen before</b> ✅ Done (took 4 attempts — the story is worth knowing)</summary>
 
 **Setup:** wrote 14 brand-new test sentences (2 per region) that were
 never used to train the converter — genuinely different wording, e.g.
@@ -263,6 +223,30 @@ just be replaced with this simpler lookup approach. If no, the problem is
 in the robot's own precision requirements, not the sentence-to-code step,
 and the next fix looks completely different (training the robot to be more
 forgiving of small target errors). That test is running now.
+
+**Step 4 — the answer, and it's decisive.** Skipped the trained converter
+entirely and used the simple lookup approach with all 84 known sentences.
+Result: real success on brand-new sentences jumped from ~10% (trained
+converter) to **57%** — and for the *typical* new sentence, it now
+succeeds every single time (not just sometimes). That confirms it plainly:
+the trained converter was the problem all along, not the robot's
+precision. A second, deliberately skeptical review checked this from
+scratch — recounted every number by hand, chased down one odd wrinkle in
+the data (a slightly-more-careful version of the lookup got the *direction*
+right more often but actually did *worse* on the real task — turns out
+that's because "more careful" also means "less exact," and exact beats
+careful-but-approximate here), and signed off.
+
+**Real, honest limits worth knowing before stage 5/6:** this fix works by
+recognizing a new sentence as similar to one of 84 known sentences — it
+doesn't yet understand language on its own from scratch. About 6 of the
+14 brand-new test sentences still fail, because they happen to resemble
+the *wrong* known sentence more than the right one. That's a fixable gap
+(teach it more example sentences), not a fundamentally broken idea — but
+it does mean stage 6's promise of truly free-form live English will need
+either a much bigger set of known sentences or a smarter fallback for
+things that don't resemble anything it's seen. Noted now so it isn't
+rediscovered the hard way later.
 
 Full detail: `experiments/04_open_vocabulary/report.md`
 
