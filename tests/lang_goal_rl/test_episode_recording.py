@@ -243,6 +243,82 @@ class TestRecordEpisode:
         assert result.n_steps == 2
         env.close()
 
+    def test_total_travel_is_a_non_negative_float(self, tmp_path) -> None:
+        env = gym.make(ENV_ID, render_mode="rgb_array")
+        model = _GoalRecordingStubModel(env)
+        out_path = tmp_path / "episode.gif"
+
+        result = record_episode(env, model, out_path=out_path, max_steps=5)
+
+        assert isinstance(result.total_travel, float)
+        assert result.total_travel >= 0.0
+        env.close()
+
+    def test_total_travel_is_larger_for_an_episode_that_actually_moves(
+        self, tmp_path
+    ) -> None:
+        # A constant-max-effort action pushes the gripper continuously in one
+        # direction; a zero action leaves it essentially in place (modulo
+        # tiny physics settling). Comparing the two proves total_travel
+        # reflects real cumulative displacement of achieved_goal, not just
+        # start-to-end distance or a step count.
+        env = gym.make(ENV_ID, render_mode="rgb_array")
+        zero_model = _GoalRecordingStubModel(env, action=_zero_action(env))
+        stationary_result = record_episode(
+            env, zero_model, out_path=tmp_path / "stationary.gif", max_steps=15
+        )
+
+        moving_action = np.ones(env.action_space.shape, dtype=env.action_space.dtype)
+        moving_model = _GoalRecordingStubModel(env, action=moving_action)
+        moving_result = record_episode(
+            env, moving_model, out_path=tmp_path / "moving.gif", max_steps=15
+        )
+
+        assert moving_result.total_travel > stationary_result.total_travel
+        env.close()
+
+    def test_total_travel_sums_per_step_displacement_not_just_endpoints(
+        self, tmp_path
+    ) -> None:
+        # A trajectory that moves out and back to (near) its start has a
+        # small start-to-end distance but real total displacement -- a
+        # metric that only compared endpoints would badly undercount this.
+        # Reversing the action halfway through exercises exactly that shape.
+        env = gym.make(ENV_ID, render_mode="rgb_array")
+        obs, _info = env.reset(seed=PROBE_SEED)
+        start = np.array(obs["achieved_goal"], copy=True)
+        out_action = np.ones(env.action_space.shape, dtype=env.action_space.dtype)
+        for _ in range(6):
+            obs, *_ = env.step(out_action)
+        back_action = -out_action
+        for _ in range(6):
+            obs, *_ = env.step(back_action)
+        end = np.array(obs["achieved_goal"], copy=True)
+        endpoint_distance = float(np.linalg.norm(end - start))
+
+        class _OutAndBackModel:
+            def __init__(self) -> None:
+                self._step = 0
+
+            def predict(
+                self, _obs: dict, *, deterministic: bool = True
+            ) -> tuple[np.ndarray, None]:
+                del deterministic
+                self._step += 1
+                action = out_action if self._step <= 6 else back_action
+                return action, None
+
+        env.reset(seed=PROBE_SEED)
+        result = record_episode(
+            env,
+            _OutAndBackModel(),
+            out_path=tmp_path / "out_and_back.gif",
+            max_steps=12,
+        )
+
+        assert result.total_travel > endpoint_distance
+        env.close()
+
 
 class _GoalRecordingStubModel:
     """Fixed-action stub that records every `obs["desired_goal"]` it's asked to predict on.
@@ -480,6 +556,36 @@ class TestRecordEpisodeWithGoalSwitch:
 
         assert out_path.exists()
         assert result.n_steps == 3
+        env.close()
+
+    def test_total_travel_is_larger_for_a_switch_episode_that_actually_moves(
+        self, tmp_path
+    ) -> None:
+        env = gym.make(ENV_ID, render_mode="rgb_array")
+        zero_model = _GoalRecordingStubModel(env, action=_zero_action(env))
+        stationary_result = record_episode_with_goal_switch(
+            env,
+            zero_model,
+            out_path=tmp_path / "stationary_switch.gif",
+            initial_goal_xyz=np.array([1.3, 0.7, 0.5]),
+            switch_step=3,
+            new_goal_xyz=np.array([1.4, 0.8, 0.6]),
+            max_steps=10,
+        )
+
+        moving_action = np.ones(env.action_space.shape, dtype=env.action_space.dtype)
+        moving_model = _GoalRecordingStubModel(env, action=moving_action)
+        moving_result = record_episode_with_goal_switch(
+            env,
+            moving_model,
+            out_path=tmp_path / "moving_switch.gif",
+            initial_goal_xyz=np.array([1.3, 0.7, 0.5]),
+            switch_step=3,
+            new_goal_xyz=np.array([1.4, 0.8, 0.6]),
+            max_steps=10,
+        )
+
+        assert moving_result.total_travel > stationary_result.total_travel
         env.close()
 
     def test_rejects_switch_step_of_zero(self, tmp_path) -> None:

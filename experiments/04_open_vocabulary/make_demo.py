@@ -38,11 +38,26 @@ gap describes, instead of re-demonstrating an already-well-documented
 failure mode on the exact phrase the brief happened to suggest as an example.
 Both attempts' real recorded outcomes are printed; nothing here overrides
 `EpisodeRecording.success`.
+
+Seed-selection fix: for whichever instruction actually succeeds, this script
+previously recorded only `EVAL_SEEDS[0]` -- a single fixed seed, no search at
+all. Since `report.md`'s own table shows this checkpoint's RL success rate is
+either 0.000 or 1.000 per instruction (a fixed goal embedding plus a
+deterministic policy makes each instruction's outcome the same across seeds,
+not a per-seed coin flip), a single seed was never at risk of showing a false
+failure -- but for the 1.000 instruction, every one of `EVAL_SEEDS` is a real
+success, so the *specific* seed chosen still matters for how visually
+dynamic the clip is. This script now searches a bounded range of seeds per
+instruction (`EVAL_SEEDS`, 15 seeds) and, among the real successes found,
+keeps the one with the largest `EpisodeRecording.total_travel` -- never
+fabricating a success where the report predicts none.
 """
 
 from __future__ import annotations
 
+import shutil
 import sys
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -53,7 +68,7 @@ import numpy as np
 import torch
 from stable_baselines3 import SAC
 
-from lang_goal_rl.episode_recording import record_episode
+from lang_goal_rl.episode_recording import EpisodeRecording, record_episode
 from lang_goal_rl.goal_encoder import GoalEncoder
 from lang_goal_rl.held_out_paraphrases import HELD_OUT_PARAPHRASES
 from lang_goal_rl.live_goal_controller import LiveGoalController
@@ -88,11 +103,19 @@ CANDIDATE_INSTRUCTIONS: tuple[str, ...] = (
 """Tried in this order -- see module docstring for exactly why both are here
 and what report.md's own per-instruction table predicts for each."""
 
-EVAL_SEEDS = range(9000, 9010)
-"""A seed range distinct from every stage-3/4 eval protocol's base seeds
-(`LITERAL_EVAL_BASE_SEED=1000`, `LANGUAGE_EVAL_BASE_SEED=5000`,
-`ATTEMPT4_EVAL_BASE_SEED=13000`), so this demo's episodes don't silently
-collide with a seed a report table already covers."""
+EVAL_SEEDS = range(9000, 9015)
+"""A bounded 15-seed search range, distinct from every stage-3/4 eval
+protocol's base seeds (`LITERAL_EVAL_BASE_SEED=1000`,
+`LANGUAGE_EVAL_BASE_SEED=5000`, `ATTEMPT4_EVAL_BASE_SEED=13000`), so this
+demo's episodes don't silently collide with a seed a report table already
+covers. Widened from a single fixed seed so the travel-based selection in
+`try_instruction` has a real pool of successes to choose from."""
+
+MEANINGFUL_IMPROVEMENT_RATIO = 1.2
+"""The selected episode's `total_travel` must be at least this multiple of
+the first success's to count as "meaningfully more dynamic" -- below this,
+the search result is reported honestly as a non-improvement rather than
+silently presented as a win."""
 
 
 def load_frozen_encoder(path: Path) -> GoalEncoder:
@@ -146,26 +169,78 @@ def try_instruction(
     controller: LiveGoalController,
     instruction: str,
 ) -> bool:
-    """Record one episode for `instruction`, overwriting `OUT_PATH`, and return whether it succeeded."""
+    """Search `EVAL_SEEDS` for `instruction`, write the most travel-heavy real success to `OUT_PATH`.
+
+    See the module docstring's "Seed-selection fix" note: every seed in the
+    bounded range is tried (not just until the first success), every real
+    success is kept, and the one with the largest
+    `EpisodeRecording.total_travel` is written to `OUT_PATH`. Never
+    fabricates a success — if no seed succeeds (e.g. a misclassified
+    instruction with a documented 0.000 RL success rate), that's returned
+    honestly as `False` with the last attempt kept, labeled honestly.
+    """
     region_name = _HELD_OUT_BY_TEXT[instruction]
     embedding = controller.instruction_to_goal_embedding(instruction)
     centroid = compute_region_centroid(region_name).astype(np.float64)
 
-    seed = EVAL_SEEDS[0]
-    env.reset(seed=seed)
-    with _pin_ground_truth_goal(env, centroid):
-        result = record_episode(
-            env,
-            model,
-            out_path=OUT_PATH,
-            goal_embedding_override=embedding,
-            max_steps=50,
+    successes: list[tuple[int, EpisodeRecording, Path]] = []
+    first_success: tuple[int, EpisodeRecording] | None = None
+    last_attempt: tuple[int, EpisodeRecording, Path] | None = None
+
+    with tempfile.TemporaryDirectory(prefix="stage4-demo-candidates-") as scratch_dir:
+        scratch_root = Path(scratch_dir)
+        for seed in EVAL_SEEDS:
+            candidate_path = scratch_root / f"seed_{seed}.gif"
+            env.reset(seed=seed)
+            with _pin_ground_truth_goal(env, centroid):
+                result = record_episode(
+                    env,
+                    model,
+                    out_path=candidate_path,
+                    goal_embedding_override=embedding,
+                    max_steps=50,
+                )
+            print(
+                f'[stage4] instruction="{instruction}" region="{region_name}" seed={seed} '
+                f"success={result.success} n_steps={result.n_steps} total_travel={result.total_travel:.4f}",
+            )
+            last_attempt = (seed, result, candidate_path)
+            if result.success:
+                successes.append((seed, result, candidate_path))
+                if first_success is None:
+                    first_success = (seed, result)
+
+        if not successes:
+            print(
+                f'[stage4] instruction="{instruction}": no success found across tried seeds -- '
+                "keeping the last recording, labeled honestly"
+            )
+            assert last_attempt is not None  # EVAL_SEEDS is non-empty
+            _, last_result, last_path = last_attempt
+            shutil.copyfile(last_path, OUT_PATH)
+            return last_result.success
+
+        best_seed, best_result, best_path = max(
+            successes, key=lambda item: item[1].total_travel
         )
+        shutil.copyfile(best_path, OUT_PATH)
+
+    assert first_success is not None
+    first_seed, first_result = first_success
     print(
-        f'[stage4] instruction="{instruction}" region="{region_name}" seed={seed} '
-        f"success={result.success} n_steps={result.n_steps}",
+        f'[stage4] instruction="{instruction}": first success: seed={first_seed} '
+        f"total_travel={first_result.total_travel:.4f} | selected: seed={best_seed} "
+        f"total_travel={best_result.total_travel:.4f} ({len(successes)}/{len(EVAL_SEEDS)} seeds tried succeeded)"
     )
-    return result.success
+    if first_result.total_travel > 0 and (
+        best_result.total_travel
+        < first_result.total_travel * MEANINGFUL_IMPROVEMENT_RATIO
+    ):
+        print(
+            f'[stage4] NOTE: instruction="{instruction}": no tried seed had meaningfully more travel than '
+            "the first success -- the selected clip is a real success but not a clearly more dynamic one."
+        )
+    return best_result.success
 
 
 def main() -> None:

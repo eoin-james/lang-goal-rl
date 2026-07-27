@@ -71,11 +71,22 @@ class EpisodeRecording:
         n_steps: Number of env steps the episode ran for. The GIF has
             `n_steps + 1` frames (an initial post-reset frame, plus one per
             step).
+        total_travel: Sum of per-step Euclidean displacement of
+            `obs["achieved_goal"]` (the gripper's xyz position) across the
+            whole episode, in the env's native units. This is a measure of
+            how much the gripper actually moved on screen, not just how far
+            apart its start and end points are — a trajectory that moves out
+            and back to near its starting point has a small start-to-end
+            distance but a large `total_travel`. Demo-selection scripts use
+            this to pick a visually compelling successful episode out of
+            several real successes, rather than the first one found (see
+            each stage's `make_demo.py` docstring).
     """
 
     path: Path
     success: bool
     n_steps: int
+    total_travel: float
 
 
 @contextmanager
@@ -160,6 +171,27 @@ def _goal_embedding_override_context(
     return _pin_desired_goal_embedding(features_extractor, embedding)
 
 
+def _sum_step_displacements(positions: list[np.ndarray]) -> float:
+    """Sum the Euclidean distance between each consecutive pair of positions.
+
+    Used to turn a per-step trace of `achieved_goal` into `total_travel` —
+    deliberately a sum of per-step displacements rather than a start-to-end
+    distance, since the latter can hide a trajectory that moves a lot but
+    ends up near where it started.
+
+    Args:
+        positions: Per-step xyz positions in visit order, one per rendered
+            frame (including the initial post-reset position).
+
+    Returns:
+        Total path length, or `0.0` if fewer than 2 positions were recorded.
+    """
+    if len(positions) < 2:
+        return 0.0
+    displacements = np.diff(np.stack(positions), axis=0)
+    return float(np.linalg.norm(displacements, axis=1).sum())
+
+
 def record_episode(
     env: gym.Env,
     model: SAC,
@@ -213,9 +245,13 @@ def record_episode(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     frames: list[npt.ArrayLike] = []
+    achieved_goal_positions: list[np.ndarray] = []
     with _goal_embedding_override_context(model, goal_embedding_override):
         obs, _info = env.reset()
         frames.append(_render_or_raise(env))
+        achieved_goal_positions.append(
+            np.asarray(obs["achieved_goal"], dtype=np.float64)
+        )
 
         terminated = truncated = False
         is_success = False
@@ -226,6 +262,9 @@ def record_episode(
             action, _state = model.predict(obs, deterministic=True)
             obs, _reward, terminated, truncated, info = env.step(action)
             frames.append(_render_or_raise(env))
+            achieved_goal_positions.append(
+                np.asarray(obs["achieved_goal"], dtype=np.float64)
+            )
             is_success = bool(info.get("is_success", is_success))
             n_steps += 1
 
@@ -233,7 +272,12 @@ def record_episode(
     # per-frame `duration` in milliseconds -- convert here so callers keep
     # the more intuitive `fps` unit without triggering a deprecation warning.
     imageio.mimsave(out_path, frames, duration=1000 / fps)
-    return EpisodeRecording(path=out_path, success=is_success, n_steps=n_steps)
+    return EpisodeRecording(
+        path=out_path,
+        success=is_success,
+        n_steps=n_steps,
+        total_travel=_sum_step_displacements(achieved_goal_positions),
+    )
 
 
 def record_episode_with_goal_switch(
@@ -348,10 +392,12 @@ def record_episode_with_goal_switch(
     new_goal = np.asarray(new_goal_xyz, dtype=np.float64)
 
     frames: list[npt.ArrayLike] = []
+    achieved_goal_positions: list[np.ndarray] = []
     obs, _info = env.reset()
     env.unwrapped.goal = initial_goal.copy()
     obs["desired_goal"] = initial_goal.copy()
     frames.append(_render_or_raise(env))
+    achieved_goal_positions.append(np.asarray(obs["achieved_goal"], dtype=np.float64))
 
     n_steps = 0
     terminated = truncated = False
@@ -360,6 +406,9 @@ def record_episode_with_goal_switch(
             action, _state = model.predict(obs, deterministic=True)
             obs, _reward, terminated, truncated, _info = env.step(action)
             frames.append(_render_or_raise(env))
+            achieved_goal_positions.append(
+                np.asarray(obs["achieved_goal"], dtype=np.float64)
+            )
             n_steps += 1
 
     env.unwrapped.goal = new_goal.copy()
@@ -373,11 +422,19 @@ def record_episode_with_goal_switch(
             action, _state = model.predict(obs, deterministic=True)
             obs, _reward, terminated, truncated, info = env.step(action)
             frames.append(_render_or_raise(env))
+            achieved_goal_positions.append(
+                np.asarray(obs["achieved_goal"], dtype=np.float64)
+            )
             is_success = bool(info.get("is_success", is_success))
             n_steps += 1
 
     imageio.mimsave(out_path, frames, duration=1000 / fps)
-    return EpisodeRecording(path=out_path, success=is_success, n_steps=n_steps)
+    return EpisodeRecording(
+        path=out_path,
+        success=is_success,
+        n_steps=n_steps,
+        total_travel=_sum_step_displacements(achieved_goal_positions),
+    )
 
 
 def _render_or_raise(env: gym.Env) -> np.ndarray:

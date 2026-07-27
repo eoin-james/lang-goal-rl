@@ -42,17 +42,32 @@ Recorded in literal-goal mode (`goal_embedding_override=None`): the policy
 sees the env's real `desired_goal` run through `GoalEmbeddingExtractor` ->
 stage 2's frozen `GoalEncoder` -- exactly what stage 2's proof gate tests.
 Ground truth is `info["is_success"]`, untouched.
+
+Seed-selection fix (this script previously stopped at the first seed that
+succeeded, seed 1000 -- and because it loads the *exact same checkpoint* as
+`03_language_goal_projection/make_demos.py`'s literal-baseline clip, which
+also started its own search at seed 1000, both scripts produced the
+byte-identical GIF): this script now searches a small, bounded range of
+seeds (`EVAL_SEEDS`, 2000-2014 -- deliberately disjoint from stage 3's
+`BASELINE_EVAL_SEEDS`), records every real success in that range, and keeps
+the one with the largest `EpisodeRecording.total_travel` (summed per-step
+gripper displacement, not just start-to-end distance). This never fabricates
+or cherry-picks a non-success -- only real successes are compared -- and if
+no tried seed had meaningfully more travel than the first success, that's
+reported honestly.
 """
 
 from __future__ import annotations
 
+import shutil
+import tempfile
 from pathlib import Path
 
 import gymnasium as gym
 import gymnasium_robotics
 from stable_baselines3 import SAC
 
-from lang_goal_rl.episode_recording import record_episode
+from lang_goal_rl.episode_recording import EpisodeRecording, record_episode
 
 EXPERIMENT_DIR = Path(__file__).parent
 REPO_ROOT = EXPERIMENT_DIR.parent.parent
@@ -64,13 +79,24 @@ CHECKPOINT_PATH = (
 )
 OUT_PATH = DEMOS_DIR / "05_stage2_embedding_baseline.gif"
 
-EVAL_SEEDS = range(1000, 1010)
-"""Matches this experiment's own `evaluate()` held-out eval seed range
-(`1000 + episode`), also reused unchanged by stage 3's `evaluate_literal`."""
+EVAL_SEEDS = range(2000, 2015)
+"""A 15-seed bounded search range, deliberately disjoint from
+`03_language_goal_projection/make_demos.py`'s `BASELINE_EVAL_SEEDS` even
+though both scripts load the identical checkpoint in literal-goal mode --
+required so the two scripts' selected episodes can never coincide, which is
+exactly what produced the byte-identical `01_baseline_success.gif` /
+`05_stage2_embedding_baseline.gif` pair this fix resolves. Also distinct
+from stage 1's `EVAL_SEEDS` (1000-1014) per the task's dedup requirement."""
+
+MEANINGFUL_IMPROVEMENT_RATIO = 1.2
+"""The selected episode's `total_travel` must be at least this multiple of
+the first success's to count as "meaningfully more dynamic" -- below this,
+the search result is reported honestly as a non-improvement rather than
+silently presented as a win."""
 
 
 def main() -> None:
-    """Record the stage-2 embedding baseline and print the real, measured outcome."""
+    """Search the eval-seed range for the most visually dynamic real success and print the outcome."""
     DEMOS_DIR.mkdir(parents=True, exist_ok=True)
     gym.register_envs(gymnasium_robotics)
     env = gym.make(ENV_ID, render_mode="rgb_array")
@@ -79,15 +105,55 @@ def main() -> None:
         f"loaded checkpoint from {CHECKPOINT_PATH} (stage-3 checkpoint, stage-2-identical protocol, eval-only)"
     )
 
-    for seed in EVAL_SEEDS:
-        env.reset(seed=seed)
-        result = record_episode(env, model, out_path=OUT_PATH, max_steps=50)
-        print(f"[stage2] seed={seed} success={result.success} n_steps={result.n_steps}")
-        if result.success:
-            break
-    else:
+    successes: list[tuple[int, EpisodeRecording, Path]] = []
+    first_success: tuple[int, EpisodeRecording] | None = None
+    last_attempt: tuple[int, EpisodeRecording, Path] | None = None
+
+    with tempfile.TemporaryDirectory(prefix="stage2-demo-candidates-") as scratch_dir:
+        scratch_root = Path(scratch_dir)
+        for seed in EVAL_SEEDS:
+            candidate_path = scratch_root / f"seed_{seed}.gif"
+            env.reset(seed=seed)
+            result = record_episode(env, model, out_path=candidate_path, max_steps=50)
+            print(
+                f"[stage2] seed={seed} success={result.success} n_steps={result.n_steps} "
+                f"total_travel={result.total_travel:.4f}"
+            )
+            last_attempt = (seed, result, candidate_path)
+            if result.success:
+                successes.append((seed, result, candidate_path))
+                if first_success is None:
+                    first_success = (seed, result)
+
+        if not successes:
+            print(
+                "[stage2] WARNING: no success found across tried seeds -- keeping the last recording, labeled honestly"
+            )
+            assert last_attempt is not None  # EVAL_SEEDS is non-empty
+            _, _, last_path = last_attempt
+            shutil.copyfile(last_path, OUT_PATH)
+            env.close()
+            return
+
+        best_seed, best_result, best_path = max(
+            successes, key=lambda item: item[1].total_travel
+        )
+        shutil.copyfile(best_path, OUT_PATH)
+
+    assert first_success is not None
+    first_seed, first_result = first_success
+    print(
+        f"[stage2] first success: seed={first_seed} total_travel={first_result.total_travel:.4f} | "
+        f"selected: seed={best_seed} total_travel={best_result.total_travel:.4f} "
+        f"({len(successes)}/{len(EVAL_SEEDS)} seeds tried succeeded)"
+    )
+    if first_result.total_travel > 0 and (
+        best_result.total_travel
+        < first_result.total_travel * MEANINGFUL_IMPROVEMENT_RATIO
+    ):
         print(
-            "[stage2] WARNING: no success found across tried seeds -- keeping the last recording, labeled honestly"
+            "[stage2] NOTE: no tried seed had meaningfully more travel than the first success -- "
+            "the selected clip is a real success but not a clearly more dynamic one."
         )
 
     env.close()
