@@ -9,8 +9,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 4        |
-|    fps             | 174      |
-|    time_elapsed    | 1        |
+|    fps             | 217      |
+|    time_elapsed    | 0        |
 |    total_timesteps | 200      |
 | train/             |          |
 |    actor_loss      | -4.59    |
@@ -27,8 +27,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 8        |
-|    fps             | 119      |
-|    time_elapsed    | 3        |
+|    fps             | 152      |
+|    time_elapsed    | 2        |
 |    total_timesteps | 400      |
 | train/             |          |
 |    actor_loss      | -4.68    |
@@ -45,8 +45,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 12       |
-|    fps             | 109      |
-|    time_elapsed    | 5        |
+|    fps             | 139      |
+|    time_elapsed    | 4        |
 |    total_timesteps | 600      |
 | train/             |          |
 |    actor_loss      | -4.61    |
@@ -63,8 +63,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 16       |
-|    fps             | 106      |
-|    time_elapsed    | 7        |
+|    fps             | 134      |
+|    time_elapsed    | 5        |
 |    total_timesteps | 800      |
 | train/             |          |
 |    actor_loss      | -4.51    |
@@ -81,8 +81,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 20       |
-|    fps             | 104      |
-|    time_elapsed    | 9        |
+|    fps             | 131      |
+|    time_elapsed    | 7        |
 |    total_timesteps | 1000     |
 | train/             |          |
 |    actor_loss      | -4.26    |
@@ -99,8 +99,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 24       |
-|    fps             | 104      |
-|    time_elapsed    | 11       |
+|    fps             | 129      |
+|    time_elapsed    | 9        |
 |    total_timesteps | 1200     |
 | train/             |          |
 |    actor_loss      | -3.89    |
@@ -117,8 +117,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 28       |
-|    fps             | 103      |
-|    time_elapsed    | 13       |
+|    fps             | 128      |
+|    time_elapsed    | 10       |
 |    total_timesteps | 1400     |
 | train/             |          |
 |    actor_loss      | -3.34    |
@@ -135,8 +135,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 32       |
-|    fps             | 102      |
-|    time_elapsed    | 15       |
+|    fps             | 127      |
+|    time_elapsed    | 12       |
 |    total_timesteps | 1600     |
 | train/             |          |
 |    actor_loss      | -2.8     |
@@ -153,8 +153,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 36       |
-|    fps             | 102      |
-|    time_elapsed    | 17       |
+|    fps             | 126      |
+|    time_elapsed    | 14       |
 |    total_timesteps | 1800     |
 | train/             |          |
 |    actor_loss      | -2.27    |
@@ -171,8 +171,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 40       |
-|    fps             | 102      |
-|    time_elapsed    | 19       |
+|    fps             | 126      |
+|    time_elapsed    | 15       |
 |    total_timesteps | 2000     |
 | train/             |          |
 |    actor_loss      | -1.57    |
@@ -189,8 +189,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 44       |
-|    fps             | 102      |
-|    time_elapsed    | 21       |
+|    fps             | 125      |
+|    time_elapsed    | 17       |
 |    total_timesteps | 2200     |
 | train/             |          |
 |    actor_loss      | -0.936   |
@@ -207,8 +207,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 48       |
-|    fps             | 102      |
-|    time_elapsed    | 23       |
+|    fps             | 125      |
+|    time_elapsed    | 19       |
 |    total_timesteps | 2400     |
 | train/             |          |
 |    actor_loss      | -0.506   |
@@ -225,8 +225,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 52       |
-|    fps             | 101      |
-|    time_elapsed    | 25       |
+|    fps             | 124      |
+|    time_elapsed    | 20       |
 |    total_timesteps | 2600     |
 | train/             |          |
 |    actor_loss      | -0.0661  |
@@ -243,8 +243,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 56       |
-|    fps             | 101      |
-|    time_elapsed    | 27       |
+|    fps             | 123      |
+|    time_elapsed    | 22       |
 |    total_timesteps | 2800     |
 | train/             |          |
 |    actor_loss      | 0.452    |
@@ -261,8 +261,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 60       |
-|    fps             | 101      |
-|    time_elapsed    | 29       |
+|    fps             | 123      |
+|    time_elapsed    | 24       |
 |    total_timesteps | 3000     |
 | train/             |          |
 |    actor_loss      | 0.679    |
@@ -279,8 +279,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0        |
 | time/              |          |
 |    episodes        | 64       |
-|    fps             | 101      |
-|    time_elapsed    | 31       |
+|    fps             | 122      |
+|    time_elapsed    | 26       |
 |    total_timesteps | 3200     |
 | train/             |          |
 |    actor_loss      | 1.12     |
@@ -297,8 +297,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.0147   |
 | time/              |          |
 |    episodes        | 68       |
-|    fps             | 101      |
-|    time_elapsed    | 33       |
+|    fps             | 122      |
+|    time_elapsed    | 27       |
 |    total_timesteps | 3400     |
 | train/             |          |
 |    actor_loss      | 1.38     |
@@ -315,8 +315,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.0278   |
 | time/              |          |
 |    episodes        | 72       |
-|    fps             | 101      |
-|    time_elapsed    | 35       |
+|    fps             | 122      |
+|    time_elapsed    | 29       |
 |    total_timesteps | 3600     |
 | train/             |          |
 |    actor_loss      | 2.22     |
@@ -333,8 +333,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.0526   |
 | time/              |          |
 |    episodes        | 76       |
-|    fps             | 101      |
-|    time_elapsed    | 37       |
+|    fps             | 122      |
+|    time_elapsed    | 31       |
 |    total_timesteps | 3800     |
 | train/             |          |
 |    actor_loss      | 2.43     |
@@ -351,8 +351,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.0625   |
 | time/              |          |
 |    episodes        | 80       |
-|    fps             | 101      |
-|    time_elapsed    | 39       |
+|    fps             | 122      |
+|    time_elapsed    | 32       |
 |    total_timesteps | 4000     |
 | train/             |          |
 |    actor_loss      | 2.4      |
@@ -369,8 +369,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.0833   |
 | time/              |          |
 |    episodes        | 84       |
-|    fps             | 100      |
-|    time_elapsed    | 41       |
+|    fps             | 122      |
+|    time_elapsed    | 34       |
 |    total_timesteps | 4200     |
 | train/             |          |
 |    actor_loss      | 2.42     |
@@ -387,8 +387,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.114    |
 | time/              |          |
 |    episodes        | 88       |
-|    fps             | 100      |
-|    time_elapsed    | 43       |
+|    fps             | 121      |
+|    time_elapsed    | 36       |
 |    total_timesteps | 4400     |
 | train/             |          |
 |    actor_loss      | 1.99     |
@@ -405,8 +405,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.152    |
 | time/              |          |
 |    episodes        | 92       |
-|    fps             | 100      |
-|    time_elapsed    | 45       |
+|    fps             | 121      |
+|    time_elapsed    | 37       |
 |    total_timesteps | 4600     |
 | train/             |          |
 |    actor_loss      | 2.36     |
@@ -423,8 +423,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.188    |
 | time/              |          |
 |    episodes        | 96       |
-|    fps             | 100      |
-|    time_elapsed    | 47       |
+|    fps             | 121      |
+|    time_elapsed    | 39       |
 |    total_timesteps | 4800     |
 | train/             |          |
 |    actor_loss      | 2.43     |
@@ -441,8 +441,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.22     |
 | time/              |          |
 |    episodes        | 100      |
-|    fps             | 100      |
-|    time_elapsed    | 49       |
+|    fps             | 121      |
+|    time_elapsed    | 41       |
 |    total_timesteps | 5000     |
 | train/             |          |
 |    actor_loss      | 1.99     |
@@ -459,8 +459,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.26     |
 | time/              |          |
 |    episodes        | 104      |
-|    fps             | 100      |
-|    time_elapsed    | 51       |
+|    fps             | 121      |
+|    time_elapsed    | 42       |
 |    total_timesteps | 5200     |
 | train/             |          |
 |    actor_loss      | 2.13     |
@@ -477,8 +477,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.3      |
 | time/              |          |
 |    episodes        | 108      |
-|    fps             | 100      |
-|    time_elapsed    | 53       |
+|    fps             | 121      |
+|    time_elapsed    | 44       |
 |    total_timesteps | 5400     |
 | train/             |          |
 |    actor_loss      | 1.93     |
@@ -495,8 +495,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.34     |
 | time/              |          |
 |    episodes        | 112      |
-|    fps             | 100      |
-|    time_elapsed    | 55       |
+|    fps             | 121      |
+|    time_elapsed    | 46       |
 |    total_timesteps | 5600     |
 | train/             |          |
 |    actor_loss      | 1.7      |
@@ -513,8 +513,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.38     |
 | time/              |          |
 |    episodes        | 116      |
-|    fps             | 100      |
-|    time_elapsed    | 57       |
+|    fps             | 120      |
+|    time_elapsed    | 47       |
 |    total_timesteps | 5800     |
 | train/             |          |
 |    actor_loss      | 1.71     |
@@ -531,8 +531,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.42     |
 | time/              |          |
 |    episodes        | 120      |
-|    fps             | 100      |
-|    time_elapsed    | 59       |
+|    fps             | 120      |
+|    time_elapsed    | 49       |
 |    total_timesteps | 6000     |
 | train/             |          |
 |    actor_loss      | 1.42     |
@@ -549,8 +549,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.46     |
 | time/              |          |
 |    episodes        | 124      |
-|    fps             | 100      |
-|    time_elapsed    | 61       |
+|    fps             | 120      |
+|    time_elapsed    | 51       |
 |    total_timesteps | 6200     |
 | train/             |          |
 |    actor_loss      | 1.5      |
@@ -567,8 +567,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.5      |
 | time/              |          |
 |    episodes        | 128      |
-|    fps             | 100      |
-|    time_elapsed    | 63       |
+|    fps             | 120      |
+|    time_elapsed    | 53       |
 |    total_timesteps | 6400     |
 | train/             |          |
 |    actor_loss      | 1.63     |
@@ -585,8 +585,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.54     |
 | time/              |          |
 |    episodes        | 132      |
-|    fps             | 100      |
-|    time_elapsed    | 65       |
+|    fps             | 120      |
+|    time_elapsed    | 54       |
 |    total_timesteps | 6600     |
 | train/             |          |
 |    actor_loss      | 1.4      |
@@ -603,8 +603,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.58     |
 | time/              |          |
 |    episodes        | 136      |
-|    fps             | 100      |
-|    time_elapsed    | 67       |
+|    fps             | 120      |
+|    time_elapsed    | 56       |
 |    total_timesteps | 6800     |
 | train/             |          |
 |    actor_loss      | 1.48     |
@@ -621,8 +621,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.62     |
 | time/              |          |
 |    episodes        | 140      |
-|    fps             | 100      |
-|    time_elapsed    | 69       |
+|    fps             | 120      |
+|    time_elapsed    | 58       |
 |    total_timesteps | 7000     |
 | train/             |          |
 |    actor_loss      | 1.37     |
@@ -639,8 +639,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.66     |
 | time/              |          |
 |    episodes        | 144      |
-|    fps             | 100      |
-|    time_elapsed    | 71       |
+|    fps             | 120      |
+|    time_elapsed    | 59       |
 |    total_timesteps | 7200     |
 | train/             |          |
 |    actor_loss      | 1.41     |
@@ -657,8 +657,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.7      |
 | time/              |          |
 |    episodes        | 148      |
-|    fps             | 100      |
-|    time_elapsed    | 73       |
+|    fps             | 120      |
+|    time_elapsed    | 61       |
 |    total_timesteps | 7400     |
 | train/             |          |
 |    actor_loss      | 1.09     |
@@ -675,8 +675,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.74     |
 | time/              |          |
 |    episodes        | 152      |
-|    fps             | 100      |
-|    time_elapsed    | 75       |
+|    fps             | 120      |
+|    time_elapsed    | 63       |
 |    total_timesteps | 7600     |
 | train/             |          |
 |    actor_loss      | 1.18     |
@@ -693,8 +693,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.78     |
 | time/              |          |
 |    episodes        | 156      |
-|    fps             | 100      |
-|    time_elapsed    | 77       |
+|    fps             | 120      |
+|    time_elapsed    | 64       |
 |    total_timesteps | 7800     |
 | train/             |          |
 |    actor_loss      | 1.01     |
@@ -711,8 +711,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.82     |
 | time/              |          |
 |    episodes        | 160      |
-|    fps             | 99       |
-|    time_elapsed    | 80       |
+|    fps             | 120      |
+|    time_elapsed    | 66       |
 |    total_timesteps | 8000     |
 | train/             |          |
 |    actor_loss      | 1.1      |
@@ -729,8 +729,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.86     |
 | time/              |          |
 |    episodes        | 164      |
-|    fps             | 99       |
-|    time_elapsed    | 82       |
+|    fps             | 120      |
+|    time_elapsed    | 68       |
 |    total_timesteps | 8200     |
 | train/             |          |
 |    actor_loss      | 0.852    |
@@ -747,8 +747,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.89     |
 | time/              |          |
 |    episodes        | 168      |
-|    fps             | 99       |
-|    time_elapsed    | 84       |
+|    fps             | 120      |
+|    time_elapsed    | 69       |
 |    total_timesteps | 8400     |
 | train/             |          |
 |    actor_loss      | 1.11     |
@@ -765,8 +765,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.92     |
 | time/              |          |
 |    episodes        | 172      |
-|    fps             | 99       |
-|    time_elapsed    | 86       |
+|    fps             | 120      |
+|    time_elapsed    | 71       |
 |    total_timesteps | 8600     |
 | train/             |          |
 |    actor_loss      | 1.15     |
@@ -783,8 +783,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 176      |
-|    fps             | 99       |
-|    time_elapsed    | 88       |
+|    fps             | 120      |
+|    time_elapsed    | 73       |
 |    total_timesteps | 8800     |
 | train/             |          |
 |    actor_loss      | 0.942    |
@@ -801,8 +801,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 180      |
-|    fps             | 99       |
-|    time_elapsed    | 90       |
+|    fps             | 120      |
+|    time_elapsed    | 74       |
 |    total_timesteps | 9000     |
 | train/             |          |
 |    actor_loss      | 1.03     |
@@ -819,8 +819,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.98     |
 | time/              |          |
 |    episodes        | 184      |
-|    fps             | 98       |
-|    time_elapsed    | 92       |
+|    fps             | 120      |
+|    time_elapsed    | 76       |
 |    total_timesteps | 9200     |
 | train/             |          |
 |    actor_loss      | 0.862    |
@@ -837,8 +837,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 188      |
-|    fps             | 98       |
-|    time_elapsed    | 95       |
+|    fps             | 120      |
+|    time_elapsed    | 78       |
 |    total_timesteps | 9400     |
 | train/             |          |
 |    actor_loss      | 0.868    |
@@ -855,8 +855,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 192      |
-|    fps             | 98       |
-|    time_elapsed    | 97       |
+|    fps             | 120      |
+|    time_elapsed    | 79       |
 |    total_timesteps | 9600     |
 | train/             |          |
 |    actor_loss      | 0.886    |
@@ -873,8 +873,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 196      |
-|    fps             | 98       |
-|    time_elapsed    | 99       |
+|    fps             | 120      |
+|    time_elapsed    | 81       |
 |    total_timesteps | 9800     |
 | train/             |          |
 |    actor_loss      | 0.931    |
@@ -891,8 +891,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 200      |
-|    fps             | 98       |
-|    time_elapsed    | 101      |
+|    fps             | 120      |
+|    time_elapsed    | 83       |
 |    total_timesteps | 10000    |
 | train/             |          |
 |    actor_loss      | 0.742    |
@@ -909,8 +909,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 204      |
-|    fps             | 98       |
-|    time_elapsed    | 103      |
+|    fps             | 120      |
+|    time_elapsed    | 84       |
 |    total_timesteps | 10200    |
 | train/             |          |
 |    actor_loss      | 0.549    |
@@ -927,8 +927,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 208      |
-|    fps             | 98       |
-|    time_elapsed    | 105      |
+|    fps             | 120      |
+|    time_elapsed    | 86       |
 |    total_timesteps | 10400    |
 | train/             |          |
 |    actor_loss      | 0.945    |
@@ -945,8 +945,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 212      |
-|    fps             | 98       |
-|    time_elapsed    | 107      |
+|    fps             | 120      |
+|    time_elapsed    | 88       |
 |    total_timesteps | 10600    |
 | train/             |          |
 |    actor_loss      | 0.82     |
@@ -963,8 +963,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 216      |
-|    fps             | 98       |
-|    time_elapsed    | 109      |
+|    fps             | 120      |
+|    time_elapsed    | 89       |
 |    total_timesteps | 10800    |
 | train/             |          |
 |    actor_loss      | 0.628    |
@@ -981,8 +981,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 220      |
-|    fps             | 98       |
-|    time_elapsed    | 111      |
+|    fps             | 120      |
+|    time_elapsed    | 91       |
 |    total_timesteps | 11000    |
 | train/             |          |
 |    actor_loss      | 0.748    |
@@ -999,8 +999,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 224      |
-|    fps             | 98       |
-|    time_elapsed    | 113      |
+|    fps             | 120      |
+|    time_elapsed    | 93       |
 |    total_timesteps | 11200    |
 | train/             |          |
 |    actor_loss      | 0.892    |
@@ -1017,8 +1017,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 228      |
-|    fps             | 98       |
-|    time_elapsed    | 115      |
+|    fps             | 120      |
+|    time_elapsed    | 94       |
 |    total_timesteps | 11400    |
 | train/             |          |
 |    actor_loss      | 0.639    |
@@ -1035,8 +1035,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 232      |
-|    fps             | 98       |
-|    time_elapsed    | 117      |
+|    fps             | 120      |
+|    time_elapsed    | 96       |
 |    total_timesteps | 11600    |
 | train/             |          |
 |    actor_loss      | 0.49     |
@@ -1053,8 +1053,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 236      |
-|    fps             | 98       |
-|    time_elapsed    | 119      |
+|    fps             | 120      |
+|    time_elapsed    | 98       |
 |    total_timesteps | 11800    |
 | train/             |          |
 |    actor_loss      | 0.509    |
@@ -1071,8 +1071,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 240      |
-|    fps             | 98       |
-|    time_elapsed    | 121      |
+|    fps             | 120      |
+|    time_elapsed    | 99       |
 |    total_timesteps | 12000    |
 | train/             |          |
 |    actor_loss      | 0.691    |
@@ -1089,8 +1089,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.98     |
 | time/              |          |
 |    episodes        | 244      |
-|    fps             | 98       |
-|    time_elapsed    | 124      |
+|    fps             | 120      |
+|    time_elapsed    | 101      |
 |    total_timesteps | 12200    |
 | train/             |          |
 |    actor_loss      | 3.49     |
@@ -1107,8 +1107,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 248      |
-|    fps             | 98       |
-|    time_elapsed    | 126      |
+|    fps             | 120      |
+|    time_elapsed    | 103      |
 |    total_timesteps | 12400    |
 | train/             |          |
 |    actor_loss      | 1.06     |
@@ -1125,8 +1125,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 252      |
-|    fps             | 98       |
-|    time_elapsed    | 128      |
+|    fps             | 119      |
+|    time_elapsed    | 105      |
 |    total_timesteps | 12600    |
 | train/             |          |
 |    actor_loss      | 0.833    |
@@ -1143,8 +1143,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 256      |
-|    fps             | 98       |
-|    time_elapsed    | 130      |
+|    fps             | 119      |
+|    time_elapsed    | 106      |
 |    total_timesteps | 12800    |
 | train/             |          |
 |    actor_loss      | 0.781    |
@@ -1161,8 +1161,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 260      |
-|    fps             | 98       |
-|    time_elapsed    | 132      |
+|    fps             | 119      |
+|    time_elapsed    | 108      |
 |    total_timesteps | 13000    |
 | train/             |          |
 |    actor_loss      | 0.713    |
@@ -1179,8 +1179,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 264      |
-|    fps             | 98       |
-|    time_elapsed    | 134      |
+|    fps             | 119      |
+|    time_elapsed    | 110      |
 |    total_timesteps | 13200    |
 | train/             |          |
 |    actor_loss      | 0.757    |
@@ -1197,8 +1197,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 268      |
-|    fps             | 98       |
-|    time_elapsed    | 136      |
+|    fps             | 119      |
+|    time_elapsed    | 111      |
 |    total_timesteps | 13400    |
 | train/             |          |
 |    actor_loss      | 0.791    |
@@ -1215,8 +1215,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 272      |
-|    fps             | 98       |
-|    time_elapsed    | 138      |
+|    fps             | 119      |
+|    time_elapsed    | 113      |
 |    total_timesteps | 13600    |
 | train/             |          |
 |    actor_loss      | 0.699    |
@@ -1233,8 +1233,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 276      |
-|    fps             | 98       |
-|    time_elapsed    | 140      |
+|    fps             | 119      |
+|    time_elapsed    | 115      |
 |    total_timesteps | 13800    |
 | train/             |          |
 |    actor_loss      | 0.719    |
@@ -1251,8 +1251,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 280      |
-|    fps             | 98       |
-|    time_elapsed    | 142      |
+|    fps             | 119      |
+|    time_elapsed    | 117      |
 |    total_timesteps | 14000    |
 | train/             |          |
 |    actor_loss      | 0.631    |
@@ -1269,8 +1269,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.95     |
 | time/              |          |
 |    episodes        | 284      |
-|    fps             | 98       |
-|    time_elapsed    | 144      |
+|    fps             | 119      |
+|    time_elapsed    | 119      |
 |    total_timesteps | 14200    |
 | train/             |          |
 |    actor_loss      | 1.57     |
@@ -1287,8 +1287,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 288      |
-|    fps             | 98       |
-|    time_elapsed    | 146      |
+|    fps             | 118      |
+|    time_elapsed    | 121      |
 |    total_timesteps | 14400    |
 | train/             |          |
 |    actor_loss      | 1.03     |
@@ -1305,8 +1305,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 292      |
-|    fps             | 98       |
-|    time_elapsed    | 148      |
+|    fps             | 118      |
+|    time_elapsed    | 123      |
 |    total_timesteps | 14600    |
 | train/             |          |
 |    actor_loss      | 0.846    |
@@ -1323,8 +1323,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 296      |
-|    fps             | 98       |
-|    time_elapsed    | 151      |
+|    fps             | 118      |
+|    time_elapsed    | 124      |
 |    total_timesteps | 14800    |
 | train/             |          |
 |    actor_loss      | 0.699    |
@@ -1341,8 +1341,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 300      |
-|    fps             | 98       |
-|    time_elapsed    | 153      |
+|    fps             | 118      |
+|    time_elapsed    | 126      |
 |    total_timesteps | 15000    |
 | train/             |          |
 |    actor_loss      | 0.585    |
@@ -1359,8 +1359,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 304      |
-|    fps             | 98       |
-|    time_elapsed    | 155      |
+|    fps             | 117      |
+|    time_elapsed    | 129      |
 |    total_timesteps | 15200    |
 | train/             |          |
 |    actor_loss      | 0.72     |
@@ -1377,8 +1377,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 308      |
-|    fps             | 98       |
-|    time_elapsed    | 157      |
+|    fps             | 117      |
+|    time_elapsed    | 131      |
 |    total_timesteps | 15400    |
 | train/             |          |
 |    actor_loss      | 0.823    |
@@ -1395,8 +1395,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 312      |
-|    fps             | 98       |
-|    time_elapsed    | 159      |
+|    fps             | 117      |
+|    time_elapsed    | 133      |
 |    total_timesteps | 15600    |
 | train/             |          |
 |    actor_loss      | 0.744    |
@@ -1413,8 +1413,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 316      |
-|    fps             | 98       |
-|    time_elapsed    | 161      |
+|    fps             | 116      |
+|    time_elapsed    | 135      |
 |    total_timesteps | 15800    |
 | train/             |          |
 |    actor_loss      | 0.636    |
@@ -1431,8 +1431,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 320      |
-|    fps             | 98       |
-|    time_elapsed    | 163      |
+|    fps             | 116      |
+|    time_elapsed    | 137      |
 |    total_timesteps | 16000    |
 | train/             |          |
 |    actor_loss      | 0.631    |
@@ -1449,8 +1449,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 324      |
-|    fps             | 98       |
-|    time_elapsed    | 165      |
+|    fps             | 116      |
+|    time_elapsed    | 138      |
 |    total_timesteps | 16200    |
 | train/             |          |
 |    actor_loss      | 0.714    |
@@ -1467,8 +1467,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 328      |
-|    fps             | 98       |
-|    time_elapsed    | 167      |
+|    fps             | 116      |
+|    time_elapsed    | 141      |
 |    total_timesteps | 16400    |
 | train/             |          |
 |    actor_loss      | 0.622    |
@@ -1485,8 +1485,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 332      |
-|    fps             | 97       |
-|    time_elapsed    | 169      |
+|    fps             | 115      |
+|    time_elapsed    | 143      |
 |    total_timesteps | 16600    |
 | train/             |          |
 |    actor_loss      | 0.532    |
@@ -1503,8 +1503,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 336      |
-|    fps             | 97       |
-|    time_elapsed    | 171      |
+|    fps             | 115      |
+|    time_elapsed    | 145      |
 |    total_timesteps | 16800    |
 | train/             |          |
 |    actor_loss      | 0.703    |
@@ -1521,8 +1521,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.94     |
 | time/              |          |
 |    episodes        | 340      |
-|    fps             | 97       |
-|    time_elapsed    | 173      |
+|    fps             | 115      |
+|    time_elapsed    | 147      |
 |    total_timesteps | 17000    |
 | train/             |          |
 |    actor_loss      | 0.699    |
@@ -1539,8 +1539,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.95     |
 | time/              |          |
 |    episodes        | 344      |
-|    fps             | 97       |
-|    time_elapsed    | 176      |
+|    fps             | 115      |
+|    time_elapsed    | 148      |
 |    total_timesteps | 17200    |
 | train/             |          |
 |    actor_loss      | 0.594    |
@@ -1557,8 +1557,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 348      |
-|    fps             | 97       |
-|    time_elapsed    | 178      |
+|    fps             | 115      |
+|    time_elapsed    | 150      |
 |    total_timesteps | 17400    |
 | train/             |          |
 |    actor_loss      | 0.701    |
@@ -1575,8 +1575,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 352      |
-|    fps             | 97       |
-|    time_elapsed    | 180      |
+|    fps             | 115      |
+|    time_elapsed    | 152      |
 |    total_timesteps | 17600    |
 | train/             |          |
 |    actor_loss      | 0.649    |
@@ -1593,8 +1593,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 356      |
-|    fps             | 97       |
-|    time_elapsed    | 182      |
+|    fps             | 115      |
+|    time_elapsed    | 153      |
 |    total_timesteps | 17800    |
 | train/             |          |
 |    actor_loss      | 0.607    |
@@ -1611,8 +1611,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 360      |
-|    fps             | 97       |
-|    time_elapsed    | 183      |
+|    fps             | 115      |
+|    time_elapsed    | 155      |
 |    total_timesteps | 18000    |
 | train/             |          |
 |    actor_loss      | 0.749    |
@@ -1629,8 +1629,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 364      |
-|    fps             | 97       |
-|    time_elapsed    | 185      |
+|    fps             | 115      |
+|    time_elapsed    | 157      |
 |    total_timesteps | 18200    |
 | train/             |          |
 |    actor_loss      | 0.584    |
@@ -1647,8 +1647,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 368      |
-|    fps             | 97       |
-|    time_elapsed    | 187      |
+|    fps             | 115      |
+|    time_elapsed    | 158      |
 |    total_timesteps | 18400    |
 | train/             |          |
 |    actor_loss      | 0.627    |
@@ -1665,8 +1665,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 372      |
-|    fps             | 97       |
-|    time_elapsed    | 189      |
+|    fps             | 115      |
+|    time_elapsed    | 160      |
 |    total_timesteps | 18600    |
 | train/             |          |
 |    actor_loss      | 0.486    |
@@ -1683,8 +1683,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.97     |
 | time/              |          |
 |    episodes        | 376      |
-|    fps             | 97       |
-|    time_elapsed    | 191      |
+|    fps             | 115      |
+|    time_elapsed    | 162      |
 |    total_timesteps | 18800    |
 | train/             |          |
 |    actor_loss      | 0.525    |
@@ -1701,8 +1701,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.96     |
 | time/              |          |
 |    episodes        | 380      |
-|    fps             | 98       |
-|    time_elapsed    | 193      |
+|    fps             | 115      |
+|    time_elapsed    | 164      |
 |    total_timesteps | 19000    |
 | train/             |          |
 |    actor_loss      | 0.649    |
@@ -1719,8 +1719,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.98     |
 | time/              |          |
 |    episodes        | 384      |
-|    fps             | 98       |
-|    time_elapsed    | 195      |
+|    fps             | 115      |
+|    time_elapsed    | 165      |
 |    total_timesteps | 19200    |
 | train/             |          |
 |    actor_loss      | 0.442    |
@@ -1737,8 +1737,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 388      |
-|    fps             | 98       |
-|    time_elapsed    | 197      |
+|    fps             | 115      |
+|    time_elapsed    | 167      |
 |    total_timesteps | 19400    |
 | train/             |          |
 |    actor_loss      | 0.387    |
@@ -1755,8 +1755,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 392      |
-|    fps             | 98       |
-|    time_elapsed    | 199      |
+|    fps             | 115      |
+|    time_elapsed    | 169      |
 |    total_timesteps | 19600    |
 | train/             |          |
 |    actor_loss      | 0.557    |
@@ -1773,8 +1773,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.99     |
 | time/              |          |
 |    episodes        | 396      |
-|    fps             | 98       |
-|    time_elapsed    | 201      |
+|    fps             | 115      |
+|    time_elapsed    | 170      |
 |    total_timesteps | 19800    |
 | train/             |          |
 |    actor_loss      | 0.579    |
@@ -1791,8 +1791,8 @@ Wrapping the env in a DummyVecEnv.
 |    success_rate    | 0.98     |
 | time/              |          |
 |    episodes        | 400      |
-|    fps             | 98       |
-|    time_elapsed    | 203      |
+|    fps             | 116      |
+|    time_elapsed    | 172      |
 |    total_timesteps | 20000    |
 | train/             |          |
 |    actor_loss      | 1.02     |
@@ -1803,3 +1803,4 @@ Wrapping the env in a DummyVecEnv.
 |    n_updates       | 19899    |
 ---------------------------------
 success_rate=0.000 over 50 episodes
+checkpoint_saved=/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_2.zip
