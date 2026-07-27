@@ -1,8 +1,11 @@
 # Progress: 0 to hero
 
-**5 of 7 stages done. Starting stage 6 — the actual end goal.** Click any
+**All 7 stages done — the project's core claim is proven.** Click any
 stage below to expand its actual results — no need to open other files for
-the numbers.
+the numbers. Every report is now split into a short story you can read in
+under a minute, with the full technical record one click away if you want
+it (`report.md` for the story, `evidence.md` for everything else, in each
+experiment's folder).
 
 | # | What it proves | Status |
 |---|---|---|
@@ -12,39 +15,64 @@ the numbers.
 | 3 | Same, but told the target in an English sentence | ✅ Done |
 | 4 | Works with English phrasings it's never seen before | ✅ Done (took 4 attempts — worth reading) |
 | 5 | Can change its target mid-task when told something new | ✅ Done — no downside found |
-| 6 | Live, real-time English control, start to finish | ⬜ Starting now |
+| 6 | Live, real-time English control, start to finish | ✅ Done — the actual point of this project |
 
 ## Right now
 
-**Stage 5 passed cleanly.** Tested whether the robot can be told a
-*different* target partway through a task and still succeed, without
-starting over. Across 10 independent training runs, changing the target
-mid-task worked exactly as well as being given that same target from the
-start with the same amount of time left — no penalty at all for the
-switch, for every run that trained normally. (2 of the 10 had a training
-glitch already known and tracked from stage 1 — unrelated to this test,
-confirmed by checking those same 2 runs' training logs.) This directly
-answers a real concern from the research literature that changing targets
-mid-task can quietly break things — it didn't, at least for this task.
+**Stage 6 passed — type a sentence, the robot goes for it; type a different
+one partway through, it redirects, live.** Every earlier piece (understand
+a sentence, reach a learned code, reach a never-seen sentence, re-aim
+mid-task) got wired together and actually run: 3 independently-trained
+robots were each given a live instruction, watched go for it, then given a
+second, different live instruction partway through. On 7 completely new
+sentences never used anywhere in this project before, it redirected and
+succeeded 86% of the time, usually within 3 steps of the new instruction.
+On a set of already-tested sentences (used as a sanity check that the live
+version works the same as the earlier, offline-tested version — it did,
+matching almost exactly), it succeeded 55% of the time — lower, but because
+of the same known sentence-recognition gaps stage 4 already found and
+explained, not because live switching itself costs anything. Switching
+mid-task added no measurable extra difficulty in either case.
 
-**Heads up on scope:** this test used exact coordinates, not English
-sentences — a deliberate simplification to test "can it re-aim at all"
-without also dragging in every question from stages 2-4 about
-sentence-to-code accuracy. Stage 6 brings the English-sentence pipeline
-back into the mix live, so this clean result doesn't automatically carry
-over — worth remembering if stage 6 behaves differently.
+**Two things got caught and fixed along the way that are worth knowing
+about, because they're exactly the kind of thing that could have made this
+whole project's numbers meaningless if missed:**
 
-**Starting stage 6 now — the actual point of this whole project.** Every
-piece has been proven separately: reaching a coordinate, reaching a
-learned code, reaching an English instruction, reaching a never-seen
-English instruction, and re-aiming mid-task. Stage 6 puts them all
-together: type an instruction in live, watch the robot go for it, and
-change your mind partway through — the full conversation-with-a-robot
-experience this project set out to prove is possible.
+1. **The demo videos weren't showing real movement — found the actual
+   reason, not just "seems fine."** Investigated properly: the recording
+   code was always correct, but every demo picked whichever attempt
+   succeeded *first*, and for this robot, targets are sometimes placed
+   close enough to its resting position that the very first successful
+   attempt barely has to move at all. Fixed by picking, among genuinely
+   successful attempts, the one with the most real movement — every video
+   now clearly shows the arm actually traveling. Also caught two videos
+   that had accidentally turned out identical (same setup, same "first
+   success" rule, same result) and fixed that too. **8 demo clips are now
+   in `demos/`**, one showing the actual final capstone: a live sentence,
+   then a live redirect, mid-task.
 
-**3 demo clips are in `demos/`** — baseline success, the original broken
-failure, and a real success once the eval was fixed — each labeled with
-its actual measured success rate.
+2. **Checked whether this whole project's results could be fake — they're
+   not, and now there's a permanent test proving it.** The video
+   investigation above noticed one training episode where the target
+   started unusually close to the robot's resting spot, which raised a
+   fair, serious question: what if the task is so easy that a robot doing
+   *nothing at all* would already score well, making every "it worked"
+   result in this project meaningless? Tested directly: a robot that
+   never moves succeeds on about 2% of attempts; one that moves randomly
+   succeeds even less. Every real result reported across all 6 stages is
+   30 to 56 times higher than that "doing nothing" score — so the numbers
+   in this project are measuring genuine learned behavior, not a
+   coincidentally-easy task. This check is now a permanent, re-runnable
+   part of the repo (`experiments/00_trivial_baseline_audit/`), not just
+   something asserted once.
+
+**Honest limits of what's actually been proven, stated plainly:** this
+project proves the *mechanism* — sentence in, robot re-targets live — works
+on the simplest task in its test suite (free-space reaching, no grabbing or
+pushing objects), with a vocabulary of 84 known sentence patterns, tested
+on 7 brand-new phrasings. It does not prove this scales to truly unlimited
+open-ended English, or to harder physical tasks — those are honestly logged
+as open questions, not claimed as solved.
 
 **Repo is live:** [graylayer-labs/lang-goal-rl](https://github.com/graylayer-labs/lang-goal-rl) —
 pushed and up to date, including every attempt and its diagnosis. Also has
@@ -306,11 +334,87 @@ Full detail: `experiments/05_midepisode_regoal/report.md`
 </details>
 
 <details>
-<summary><b>Stage 6 — Live English control, start to finish</b> ⬜ Starting now</summary>
+<summary><b>Stage 6 — Live English control, start to finish</b> ✅ Done</summary>
 
-The actual point of this whole project: type an instruction in while the
-robot is working, watch it go for it, and change your mind partway
-through — combining everything proven in stages 1-5 into one live,
-end-to-end experience.
+**Setup:** wire everything together and actually run it live — turn a
+typed sentence into a goal the robot understands (stage 4's fix), feed
+that straight into the trained robot (stage 2/3's setup), and let a second
+typed sentence take over partway through the same task (stage 5's
+mechanism) — no special training for this exact combination, just the
+pieces already proven separately, used together for real.
+
+**Two test sets, kept separate on purpose:**
+- **Set A** — the same 14 sentences stage 4 already tested, reused here as
+  a sanity check: does the *live* version behave the same as the earlier,
+  offline-tested version? (It does — 0.571 success here vs. stage 4's
+  0.571, an almost exact match.)
+- **Set B** — 7 completely new sentences, checked to make sure they don't
+  resemble anything used anywhere else in this project. This is the real
+  test of "does it work on genuinely new, ad-hoc English."
+
+**Result: yes, and switching mid-task doesn't cost anything extra.**
+Across 3 independently-trained robots: Set A succeeded 55% of the time
+after a live mid-task switch, almost identical to its own 57% no-switch
+score. Set B succeeded 86% of the time after a switch, almost identical to
+its own 86% no-switch score. In both cases, switching to a new instruction
+partway through cost nothing measurable beyond whatever the
+sentence-understanding step already got right or wrong on its own — the
+switching mechanism itself is not the bottleneck. When it did redirect
+successfully, it typically did so within 3 steps of the new instruction,
+out of many steps still remaining.
+
+**A second, deliberately skeptical review checked this from scratch** and
+confirmed the live setup reproduces stage 4's exact sentence-by-sentence
+pattern (not just a similar overall number — the *same* sentences succeed
+and fail as they did before), and ran the actual statistics on "does
+switching hurt": the answer is no, comfortably within normal chance
+variation either way.
+
+**Honest limit, stated plainly:** "works on 7 new sentences" is a real
+demonstration, not proof it works on *any* new sentence — 7 is enough to
+show the mechanism functions, not enough to promise it scales to truly
+unlimited free-form English. That gap (a bigger or smarter vocabulary
+system) is honestly logged as real, open future work, not something this
+project claims to have solved.
+
+Full detail: `experiments/06_live_english_interface/report.md`
+
+</details>
+
+<details>
+<summary><b>Bonus check — is this whole project's task secretly too easy?</b> ✅ Checked, no</summary>
+
+**Why this got checked:** while making the demo videos, one training
+episode was noticed where the target started unusually close to the
+robot's resting position — close enough to raise a fair question: could
+some of this project's "it worked" results just be measuring an easy task,
+not real learned behavior?
+
+**Tested directly, not assumed.** Reset the simulator 500 times and
+measured how far the target actually starts from the robot on a typical
+attempt: usually about 14-15cm away — three times farther than the ~5cm
+"close enough to count as success" distance. The one close-up episode that
+sparked this check was a rare, unusually easy case, not the normal
+situation.
+
+**Then tested what "doing nothing" and "moving randomly" actually score,
+using the exact same pass/fail rule every stage in this project uses.**
+A robot that never moves succeeds about 2% of the time. One that moves
+randomly succeeds even less. Every real result this project has reported —
+from 55% up to 100% — sits 30 to 56 times higher than that "do nothing"
+score. That's a clear, wide margin: the numbers in this project reflect
+real learned behavior, not an accidentally free win.
+
+**One honest asterisk worth knowing:** since even a "perfect" robot solves
+this particular task in just 3-5 steps, several stages' "100% success"
+scores can't tell the difference between "very good" and "flawlessly
+perfect" — there's no room above 100% to show a difference. That's a
+limit on how much those specific perfect scores can tell you, not a sign
+they're wrong.
+
+This check is now a permanent, re-runnable part of the repo, not just
+something checked once and taken on faith.
+
+Full detail: `experiments/00_trivial_baseline_audit/report.md`
 
 </details>
