@@ -1,0 +1,60 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_4.zip (zero-shot, no new training, seed=4)
+sanity_check_success_rate=1.000 over 50 episodes (literal control, full 50-step episode, no relative move)
+switch_step=10 direction='reach forward' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.200 over 20 episodes
+switch_step=10 direction='reach forward' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.600 over 20 episodes
+switch_step=10 direction='reach forward' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=10 direction='reach back' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.150 over 20 episodes
+switch_step=10 direction='reach back' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.650 over 20 episodes
+switch_step=10 direction='reach back' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=10 direction='reach left' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.050 over 20 episodes
+switch_step=10 direction='reach left' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.550 over 20 episodes
+switch_step=10 direction='reach left' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=10 direction='reach right' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.150 over 20 episodes
+switch_step=10 direction='reach right' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.700 over 20 episodes
+switch_step=10 direction='reach right' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=10 direction='reach up high' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.250 over 20 episodes
+switch_step=10 direction='reach up high' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.500 over 20 episodes
+switch_step=10 direction='reach up high' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=10 direction='reach down low' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.100 over 20 episodes
+switch_step=10 direction='reach down low' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.450 over 20 episodes
+switch_step=10 direction='reach down low' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach forward' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.000 over 20 episodes
+switch_step=25 direction='reach forward' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.550 over 20 episodes
+switch_step=25 direction='reach forward' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach back' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.250 over 20 episodes
+switch_step=25 direction='reach back' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.400 over 20 episodes
+switch_step=25 direction='reach back' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach left' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.150 over 20 episodes
+switch_step=25 direction='reach left' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.550 over 20 episodes
+switch_step=25 direction='reach left' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach right' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.300 over 20 episodes
+switch_step=25 direction='reach right' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.500 over 20 episodes
+switch_step=25 direction='reach right' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach up high' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.300 over 20 episodes
+switch_step=25 direction='reach up high' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.500 over 20 episodes
+switch_step=25 direction='reach up high' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=25 direction='reach down low' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.200 over 20 episodes
+switch_step=25 direction='reach down low' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.450 over 20 episodes
+switch_step=25 direction='reach down low' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach forward' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.200 over 20 episodes
+switch_step=40 direction='reach forward' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.500 over 20 episodes
+switch_step=40 direction='reach forward' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach back' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.250 over 20 episodes
+switch_step=40 direction='reach back' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.600 over 20 episodes
+switch_step=40 direction='reach back' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach left' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.200 over 20 episodes
+switch_step=40 direction='reach left' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.600 over 20 episodes
+switch_step=40 direction='reach left' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach right' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.200 over 20 episodes
+switch_step=40 direction='reach right' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.600 over 20 episodes
+switch_step=40 direction='reach right' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach up high' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.250 over 20 episodes
+switch_step=40 direction='reach up high' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.600 over 20 episodes
+switch_step=40 direction='reach up high' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+switch_step=40 direction='reach down low' magnitude=small_5cm (0.05m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.100 over 20 episodes
+switch_step=40 direction='reach down low' magnitude=medium_15cm (0.15m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=0.550 over 20 episodes
+switch_step=40 direction='reach down low' magnitude=clip_forcing_35cm (0.35m) relative_move_success_rate=1.000 baseline_success_rate=1.000 clip_rate=1.000 over 20 episodes
+results_saved=/Users/eoinmca/Projects/lang-goal-rl/experiments/08_relative_move_validation/runs/seed_4/results.json
