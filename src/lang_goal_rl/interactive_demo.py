@@ -49,16 +49,20 @@ import numpy as np
 import torch
 from stable_baselines3 import SAC
 
+from lang_goal_rl.command_executor import DEFAULT_STEPS_PER_LEG, CommandExecutor
+from lang_goal_rl.command_grammar import CommandParseError, ResetCommand, parse_command
 from lang_goal_rl.episode_recording import _pin_desired_goal_embedding
 from lang_goal_rl.goal_embedding_extractor import GoalEmbeddingExtractor
 from lang_goal_rl.goal_encoder import GoalEncoder
 from lang_goal_rl.goal_region_vocabulary import (
     MEASURED_GOAL_BOX,
+    GoalBox,
     region_names,
     sample_region_goals,
 )
 from lang_goal_rl.language_goal_projection import DEFAULT_N_TARGET_SAMPLES
 from lang_goal_rl.live_goal_controller import GoalMatch, LiveGoalController
+from lang_goal_rl.relative_move import clip_to_box
 
 if TYPE_CHECKING:
     from contextlib import AbstractContextManager
@@ -78,6 +82,18 @@ DEFAULT_ENCODER = (
     / "artifacts"
     / "goal_encoder.pt"
 )
+DEFAULT_COMMANDS_CHECKPOINT = (
+    REPO_ROOT
+    / "experiments"
+    / "01_uvfa_her_baseline"
+    / "checkpoints"
+    / "seed_0.zip"
+)
+"""`--interface commands`' default checkpoint: stage 1/5's plain literal-xyz `MultiInputPolicy`
+(no `GoalEmbeddingExtractor`) -- the typed-command grammar and executor only ever write literal
+xyz goals, so there is nothing for an embedding-mode checkpoint to add in this interface, and
+loading one would cost load time for an unused component (matching stages 8/9's runners' own
+"literal-xyz checkpoint, isolate the mechanism under test" rationale)."""
 ENV_ID = "FetchReach-v4"
 CENTROID_SEED = 0
 DEFAULT_FPS = 10.0
@@ -267,6 +283,42 @@ def _apply_goal(env: gym.Env, observation: dict, match: GoalMatch) -> None:
     observation["desired_goal"] = goal.copy()
 
 
+def _clip_and_write_goal(
+    env: gym.Env, observation: dict, target: np.ndarray, *, box: GoalBox, context: str
+) -> np.ndarray:
+    """Clip `target` into `box`, log if clipping changed it, then write the result into `env`.
+
+    The single point in `--interface commands` mode where a commanded goal actually reaches
+    the live env -- every command type (`Goto`/`Move`/`Waypoints`/`Stop`) and every waypoint-leg
+    advance funnels through here, so an out-of-bounds ask degrades visibly (a printed clip
+    notice, then the clipped-but-still-reachable point) rather than silently, and no second,
+    divergent clipping path can grow elsewhere in this module. Reuses `relative_move.
+    clip_to_box` rather than reimplementing the clamp.
+
+    Args:
+        env: The live env to write the resolved goal into.
+        observation: The current observation dict; its `"desired_goal"` entry is overwritten
+            to match.
+        target: The commanded goal before clipping, shape (3,).
+        box: The box to clip into (`MEASURED_GOAL_BOX` in production).
+        context: Short label for the log line if clipping changes the value (e.g. the raw
+            command text, or "waypoint advance").
+
+    Returns:
+        The clipped goal actually written into `env`/`observation`, shape (3,).
+    """
+    raw = np.asarray(target, dtype=np.float64)
+    clipped = clip_to_box(raw, box=box)
+    if not np.allclose(raw, clipped):
+        print(
+            f"[interactive_demo] {context}: goal {raw.tolist()} was outside "
+            f"MEASURED_GOAL_BOX -- clipped to {clipped.tolist()}.",
+        )
+    env.unwrapped.goal = clipped.copy()
+    observation["desired_goal"] = clipped.copy()
+    return clipped
+
+
 def _print_match(instruction: str, match: GoalMatch, baseline_distance: float) -> None:
     print(f'\nInstruction: "{instruction}"')
     print(
@@ -387,19 +439,199 @@ def run(
         env.close()
 
 
+def run_commands(
+    *,
+    checkpoint: Path,
+    seed: int,
+    fps: float,
+    box: GoalBox = MEASURED_GOAL_BOX,
+    steps_per_leg: int = DEFAULT_STEPS_PER_LEG,
+) -> None:
+    """Run the visual environment while accepting live-typed deterministic commands (stage 10).
+
+    Mirrors `run`'s structure exactly -- same `_build_renderer`/background-stdin-thread/queue
+    mechanism, same per-episode success reporting and auto-reset -- but routes typed input
+    through `parse_command`/`CommandExecutor` instead of `LiveGoalController.match_instruction`,
+    and loads a plain literal-xyz checkpoint. No `LiveGoalController`, sentence-transformer, or
+    `GoalEncoder` is constructed in this function -- all three are unused in this interface (the
+    grammar only ever produces literal xyz goals) and would just add load time.
+
+    A `CommandParseError` from a malformed or unrecognized typed command is caught, printed, and
+    the loop continues -- never a crash, never a silent guess (`PHASES.md`'s "detect ambiguous or
+    unsupported instructions" requirement).
+
+    Args:
+        checkpoint: Path to a literal-xyz-compatible SB3 checkpoint (default caller:
+            `DEFAULT_COMMANDS_CHECKPOINT`, stage 1/5's plain `MultiInputPolicy`).
+        seed: Base seed for `env.reset`; episode `k`'s reset uses `seed + k`.
+        fps: Maximum simulation steps per second.
+        box: The `GoalBox` every commanded goal is clipped into before being written into the
+            live env (see `_clip_and_write_goal`) and passed to the `CommandExecutor` for
+            resolving `Move` commands.
+        steps_per_leg: Step budget per waypoint leg, forwarded to `CommandExecutor`.
+    """
+    gym.register_envs(gymnasium_robotics)
+    env, renderer = _build_renderer(ENV_ID)
+    assert env.spec is not None, f"{ENV_ID} must be a registered env with a spec"
+    max_steps = env.spec.max_episode_steps
+    assert max_steps is not None, f"{ENV_ID}'s spec must declare max_episode_steps"
+    model = SAC.load(checkpoint, env=env)
+    executor = CommandExecutor(box=box, steps_per_leg=steps_per_leg)
+
+    print("Model ready (commands interface). Type a command and press Return.")
+    print("Commands: goto X Y Z | move DIRECTION DISTANCE_M | waypoints X Y Z, ... | stop | reset | quit")
+    current_command_text = ""
+    while True:
+        typed = input("> ").strip()
+        if not typed:
+            continue
+        if typed.lower() == "quit":
+            renderer.close()
+            env.close()
+            return
+        try:
+            current_command = parse_command(typed)
+        except CommandParseError as error:
+            print(f"[interactive_demo] {error}")
+            continue
+        current_command_text = typed
+        break
+
+    observation, _ = env.reset(seed=seed)
+    achieved = np.array(observation["achieved_goal"], copy=True)
+    executor.apply_command(current_command, current_achieved_xyz=achieved)
+    _clip_and_write_goal(env, observation, executor.target_for_step(), box=box, context=current_command_text)
+    renderer.render(env)
+    step_in_episode = 0
+    episode_success = False
+
+    commands: queue.SimpleQueue[str] = queue.SimpleQueue()
+    reader = threading.Thread(target=_read_commands, args=(commands,), daemon=True)
+    reader.start()
+    print("\nType another command at any time to redirect.\n> ", end="", flush=True)
+
+    episode = 1
+    step_delay = 1.0 / fps
+    try:
+        while True:
+            while not commands.empty():
+                typed = commands.get()
+                lowered = typed.lower()
+                if lowered == "quit":
+                    return
+                if lowered == "status":
+                    print(f"\nCurrent target: {executor.target_for_step().tolist()}")
+                    print("> ", end="", flush=True)
+                    continue
+                if not typed:
+                    print("> ", end="", flush=True)
+                    continue
+                try:
+                    parsed = parse_command(typed)
+                except CommandParseError as error:
+                    print(f"\n[interactive_demo] {error}")
+                    print("> ", end="", flush=True)
+                    continue
+
+                executor.apply_command(parsed, current_achieved_xyz=achieved)
+                if isinstance(parsed, ResetCommand):
+                    observation, _ = env.reset(seed=seed + episode)
+                    achieved = np.array(observation["achieved_goal"], copy=True)
+                    episode += 1
+                    step_in_episode = 0
+                    episode_success = False
+                    print("\nEpisode reset.")
+                else:
+                    current_command_text = typed
+                    print(f'\nCommand: "{typed}"')
+                _clip_and_write_goal(env, observation, executor.target_for_step(), box=box, context=typed)
+                renderer.render(env)
+                print("> ", end="", flush=True)
+
+            started = time.monotonic()
+            action, _ = model.predict(observation, deterministic=True)
+            observation, _, terminated, truncated, info = env.step(action)
+            achieved = np.array(observation["achieved_goal"], copy=True)
+            executor.advance(achieved_xyz=achieved, is_success=bool(info.get("is_success", False)))
+            _clip_and_write_goal(
+                env, observation, executor.target_for_step(), box=box, context="waypoint advance",
+            )
+            renderer.render(env)
+            step_in_episode += 1
+            episode_success = bool(info.get("is_success", episode_success))
+
+            if terminated or truncated:
+                _print_episode_result(
+                    instruction=current_command_text,
+                    success=episode_success,
+                    n_steps=step_in_episode,
+                    max_steps=max_steps,
+                )
+                observation, _ = env.reset(seed=seed + episode)
+                achieved = np.array(observation["achieved_goal"], copy=True)
+                episode += 1
+                step_in_episode = 0
+                episode_success = False
+                _clip_and_write_goal(
+                    env, observation, executor.target_for_step(), box=box, context="episode auto-reset",
+                )
+                renderer.render(env)
+                print("> ", end="", flush=True)
+
+            remaining = step_delay - (time.monotonic() - started)
+            if remaining > 0:
+                time.sleep(remaining)
+    except KeyboardInterrupt:
+        print("\nStopping.")
+    finally:
+        renderer.close()
+        env.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Control FetchReach live with English instructions."
+        description="Control FetchReach live with English instructions or typed commands."
     )
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
+    parser.add_argument(
+        "--interface",
+        choices=("language", "commands"),
+        default="language",
+        help="'language' (default, stage 6): live-typed English instructions. "
+        "'commands' (stage 10): deterministic typed-command grammar (goto/move/waypoints/stop/reset).",
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=None,
+        help="Defaults to the language checkpoint for --interface language, or the literal-xyz "
+        "checkpoint for --interface commands.",
+    )
     parser.add_argument("--encoder-path", type=Path, default=DEFAULT_ENCODER)
     parser.add_argument(
         "--fps", type=float, default=DEFAULT_FPS, help="Maximum simulation steps per second."
     )
+    parser.add_argument(
+        "--steps-per-leg",
+        type=int,
+        default=DEFAULT_STEPS_PER_LEG,
+        help="--interface commands only: step budget per waypoint leg.",
+    )
     args = parser.parse_args()
     if args.fps <= 0:
         parser.error("--fps must be greater than zero")
+    if args.checkpoint is None:
+        args.checkpoint = DEFAULT_COMMANDS_CHECKPOINT if args.interface == "commands" else DEFAULT_CHECKPOINT
+
+    if args.interface == "commands":
+        run_commands(
+            checkpoint=args.checkpoint,
+            seed=args.seed,
+            fps=args.fps,
+            steps_per_leg=args.steps_per_leg,
+        )
+        return
+
     run(
         checkpoint=args.checkpoint,
         encoder_path=args.encoder_path,
