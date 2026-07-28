@@ -313,3 +313,21 @@ frame difference peaks at 1.45 over steps 0-2 (initial reach) and stays high
 gradually decaying, indicating a longer, more visible redirect. Overall mean
 frame difference is 0.42, the highest of any clip in this set (old or new).
 Judged sufficiently dynamic as-is; not regenerated.
+
+## 9. `09_stage10_typed_command_capstone.gif`
+
+**Stage 10 (Phase 2a) — the typed-command capstone.** One continuous
+50-step episode, no reset: a `goto` command drives the robot to an
+absolute point, a `move` command shifts it relative to wherever it
+actually ended up, and a `waypoints` command then chains it through a
+short sequence of further legs — all three parsed from plain command
+strings through the real `parse_command` → `CommandExecutor` → env/policy
+pipeline (`experiments/10_typed_command_interface/make_demo.py`), the same
+pipeline `interactive_demo.py --interface commands` drives live. Uses one
+of the same 8 healthy checkpoints every Phase 2a stage validates against.
+
+**This clip is illustrative, not a statistical claim** — the actual
+proof-gate numbers (goto/move/waypoint success rates, malformed-input
+rejection, stop-hold drift) come from a separate scripted harness across
+all 8 healthy seeds; see
+`experiments/10_typed_command_interface/report.md`.

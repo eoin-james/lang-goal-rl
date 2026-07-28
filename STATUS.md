@@ -418,3 +418,44 @@ something checked once and taken on faith.
 Full detail: `experiments/00_trivial_baseline_audit/report.md`
 
 </details>
+
+---
+
+## Phase 2a: replacing 7 fixed regions with real commands
+
+Phase 1 proved the mechanism; every sentence in it still snapped to one of
+7 fixed points. Phase 2a builds the layer a future language model will
+plug into — deterministic typed commands (`goto`, `move`, `waypoints`,
+`stop`, `reset`) instead of picking from 7 buckets — with no language
+model in the loop yet, so bugs in this layer can't hide behind language
+mistakes. Full stage-by-stage record: [PHASE2_ROADMAP.md](PHASE2_ROADMAP.md).
+
+| # | What it proves | Status |
+|---|---|---|
+| 7 | "Left"/"forward"/"up" on screen mean what the labels claim | ⏳ Clips ready, awaiting a human look |
+| 8 | Robot can shift itself relative to wherever it actually is, not just toward a target from episode start | ✅ Done |
+| 9 | Robot can chain several such moves with no reset in between, without errors compounding | ✅ Done (took 2 attempts — see below) |
+| 10 | All of the above works the same when driven by real typed commands, not direct function calls | ✅ Done |
+
+**Stages 8-10, done 2026-07-28.** Relative moves: perfect across every
+direction, distance, and mid-episode timing tried, on all 8 independently-
+trained robots. Waypoint chains: the first attempt only tested one robot —
+correctly caught as not enough evidence — a rerun across all 8 found zero
+chains breaking down partway through, out of 4,800 chained attempts.
+Wrapping both behind an actual typed-command parser changed nothing
+measurable, and the parser correctly rejects garbled input (23/23
+deliberately broken or nonsense strings) instead of guessing. One brand-new
+check — does telling the robot to `stop` actually make it hold still —
+came back honest and imperfect: it settles within about a centimeter or two
+and stays there, rather than converging to a perfect zero, which is
+expected for a robot never specifically trained to sit still on command.
+
+**Still open:** stage 7 needs someone to actually look at 6 short clips and
+confirm "left" looks like left on camera — deliberately a human call, not a
+number, and not blocking the stages above (they don't depend on the label
+being right, only on the underlying movement mechanism, which they measure
+directly).
+
+Full detail per stage: `experiments/08_relative_move_validation/report.md`,
+`experiments/09_waypoint_following/report.md`,
+`experiments/10_typed_command_interface/report.md`.

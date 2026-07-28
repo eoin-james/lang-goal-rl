@@ -179,3 +179,29 @@ several stages' 1.000 scores sit at an informativeness ceiling — they can't
 distinguish "very good" from "perfect," which is a measurement limit, not
 a validity problem.
 See `experiments/00_trivial_baseline_audit/evidence.md`.
+
+## 2026-07-28 — Phase 2a stages 8-10: relative moves, waypoint chains, and typed commands all generalize cleanly
+
+Ran the three remaining Phase 2a stages back to back. Stage 8 (relative
+move from an arbitrary achieved position) hit a clean 1.000/1.000 across
+6 directions x 3 magnitudes x 3 switch-points on all 8 healthy seeds —
+zero-shot, no direction-lopsidedness. Stage 9 (waypoint chaining) initially
+ran on only `seed_0` and was correctly returned INCONCLUSIVE by review;
+rerun across all 8 healthy seeds resolved it — zero multi-leg failures
+across 4,800 chain episodes, one geometric-difficulty artifact (a hard
+fixed-seed leg 4) correctly distinguished from compounding since leg 5
+always recovers. Stage 10 (the typed-command grammar/executor wrapping
+both) confirmed the wiring itself introduces no divergence: goto/move/
+waypoint success rates through the real parser+executor pipeline match
+stages 8/9's own directly-measured numbers to within 0.001-0.010,
+comfortably inside each stage's own seed-to-seed noise. The one genuinely
+new measurement — `stop`'s hold-in-place drift — settles to ~0.7-2.4cm and
+plateaus rather than growing, a sensible result given the policy was never
+trained on a self-referential goal, reported as-is rather than asserted to
+"just work." Methodology note: stage 9's single-seed misstep is the second
+time this project's own multi-seed discipline (`CONTRACTS.md`) caught a
+result that would have looked clean on a single lucky checkpoint — worth
+treating as a standing default, not a one-off correction.
+See `experiments/08_relative_move_validation/evidence.md`,
+`experiments/09_waypoint_following/evidence.md`,
+`experiments/10_typed_command_interface/evidence.md`.

@@ -1,0 +1,225 @@
+{
+  "malformed_cases": [
+    {
+      "input": "goto 1.3 0.7",
+      "expected_failure_reason": "wrong arg count: only 2 numbers, needs 3",
+      "raised_command_parse_error": true,
+      "raised_message": "'goto' needs exactly 3 numbers (x y z), got 2 token(s): ['1.3', '0.7']",
+      "passed": true
+    },
+    {
+      "input": "goto 1.3 0.7 0.5 0.2",
+      "expected_failure_reason": "wrong arg count: 4 numbers, needs exactly 3",
+      "raised_command_parse_error": true,
+      "raised_message": "'goto' needs exactly 3 numbers (x y z), got 4 token(s): ['1.3', '0.7', '0.5', '0.2']",
+      "passed": true
+    },
+    {
+      "input": "goto a b c",
+      "expected_failure_reason": "non-numeric coordinates",
+      "raised_command_parse_error": true,
+      "raised_message": "'goto': 'a' is not a valid number",
+      "passed": true
+    },
+    {
+      "input": "goto 1.3 x 0.5",
+      "expected_failure_reason": "one non-numeric coordinate among otherwise-valid ones",
+      "raised_command_parse_error": true,
+      "raised_message": "'goto': 'x' is not a valid number",
+      "passed": true
+    },
+    {
+      "input": "fly 1.3 0.7 0.5",
+      "expected_failure_reason": "unknown verb",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'fly' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "go 1.3 0.7 0.5",
+      "expected_failure_reason": "unknown verb (close to 'goto' but not it)",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'go' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "move left 0.05",
+      "expected_failure_reason": "unknown direction: bare 'left', not the full 'reach left' phrase",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' needs a direction and a distance in meters, e.g. 'move reach left 0.05'; got 'left 0.05'",
+      "passed": true
+    },
+    {
+      "input": "move up 0.05",
+      "expected_failure_reason": "unknown direction: bare 'up'",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' needs a direction and a distance in meters, e.g. 'move reach left 0.05'; got 'up 0.05'",
+      "passed": true
+    },
+    {
+      "input": "move reach forward",
+      "expected_failure_reason": "missing distance argument",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' needs a direction and a distance in meters, e.g. 'move reach left 0.05'; got 'reach forward'",
+      "passed": true
+    },
+    {
+      "input": "move reach forward abc",
+      "expected_failure_reason": "non-numeric distance",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' distance 'abc' is not a valid number of meters",
+      "passed": true
+    },
+    {
+      "input": "move reach sideways 0.05",
+      "expected_failure_reason": "unknown direction phrase entirely",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' direction 'reach sideways' is not recognized -- expected one of: reach forward, reach back, reach left, reach right, reach up high, reach down low",
+      "passed": true
+    },
+    {
+      "input": "waypoints",
+      "expected_failure_reason": "no legs at all",
+      "raised_command_parse_error": true,
+      "raised_message": "'waypoints' needs at least one comma-separated 'x y z' leg, e.g. 'waypoints 1.3 0.7 0.5, 1.4 0.8 0.6'",
+      "passed": true
+    },
+    {
+      "input": "waypoints 1.3 0.7",
+      "expected_failure_reason": "one leg with only 2 numbers",
+      "raised_command_parse_error": true,
+      "raised_message": "'waypoints' leg 1 needs exactly 3 numbers (x y z), got 2 token(s): ['1.3', '0.7']",
+      "passed": true
+    },
+    {
+      "input": "waypoints 1.3 0.7 0.5, 1.4 0.8",
+      "expected_failure_reason": "second leg malformed (only 2 numbers)",
+      "raised_command_parse_error": true,
+      "raised_message": "'waypoints' leg 2 needs exactly 3 numbers (x y z), got 2 token(s): ['1.4', '0.8']",
+      "passed": true
+    },
+    {
+      "input": "stop now",
+      "expected_failure_reason": "'stop' takes no arguments",
+      "raised_command_parse_error": true,
+      "raised_message": "'stop' takes no arguments, got 'now'",
+      "passed": true
+    },
+    {
+      "input": "reset please",
+      "expected_failure_reason": "'reset' takes no arguments",
+      "raised_command_parse_error": true,
+      "raised_message": "'reset' takes no arguments, got 'please'",
+      "passed": true
+    },
+    {
+      "input": "",
+      "expected_failure_reason": "empty string",
+      "raised_command_parse_error": true,
+      "raised_message": "empty command -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "   ",
+      "expected_failure_reason": "whitespace-only string",
+      "raised_command_parse_error": true,
+      "raised_message": "empty command -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "go somewhere nice",
+      "expected_failure_reason": "ambiguous natural language, unknown verb 'go'",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'go' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "please move the arm a little bit",
+      "expected_failure_reason": "ambiguous natural language, unknown verb 'please'",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'please' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "can you reach forward a tiny bit",
+      "expected_failure_reason": "ambiguous natural language, unknown verb 'can'",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'can' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    },
+    {
+      "input": "move it closer",
+      "expected_failure_reason": "ambiguous natural language, looks command-like but wrong shape",
+      "raised_command_parse_error": true,
+      "raised_message": "'move' needs a direction and a distance in meters, e.g. 'move reach left 0.05'; got 'it closer'",
+      "passed": true
+    },
+    {
+      "input": "reach forward",
+      "expected_failure_reason": "bare direction phrase with no 'move' verb -- 'reach' is not a known verb",
+      "raised_command_parse_error": true,
+      "raised_message": "unknown command verb 'reach' -- expected one of: goto, move, waypoints, stop, reset",
+      "passed": true
+    }
+  ],
+  "valid_control_cases": [
+    {
+      "input": "goto 1.3 0.7 0.5",
+      "raised": false,
+      "parsed": "GotoCommand(xyz=array([1.3, 0.7, 0.5]))",
+      "passed": true
+    },
+    {
+      "input": "GOTO 1.3 0.7 0.5",
+      "raised": false,
+      "parsed": "GotoCommand(xyz=array([1.3, 0.7, 0.5]))",
+      "passed": true
+    },
+    {
+      "input": "move reach left 0.05",
+      "raised": false,
+      "parsed": "MoveCommand(direction='reach left', distance_m=0.05)",
+      "passed": true
+    },
+    {
+      "input": "MOVE REACH LEFT 0.05",
+      "raised": false,
+      "parsed": "MoveCommand(direction='reach left', distance_m=0.05)",
+      "passed": true
+    },
+    {
+      "input": "move reach forward -0.05",
+      "raised": false,
+      "parsed": "MoveCommand(direction='reach forward', distance_m=-0.05)",
+      "passed": true
+    },
+    {
+      "input": "waypoints 1.3 0.7 0.5, 1.4 0.8 0.6",
+      "raised": false,
+      "parsed": "WaypointsCommand(goals=(array([1.3, 0.7, 0.5]), array([1.4, 0.8, 0.6])))",
+      "passed": true
+    },
+    {
+      "input": "stop",
+      "raised": false,
+      "parsed": "StopCommand()",
+      "passed": true
+    },
+    {
+      "input": "  stop  ",
+      "raised": false,
+      "parsed": "StopCommand()",
+      "passed": true
+    },
+    {
+      "input": "reset",
+      "raised": false,
+      "parsed": "ResetCommand()",
+      "passed": true
+    }
+  ],
+  "n_malformed_passed": 23,
+  "n_malformed_total": 23,
+  "n_valid_passed": 9,
+  "n_valid_total": 9
+}

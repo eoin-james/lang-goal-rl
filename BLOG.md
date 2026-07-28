@@ -224,7 +224,48 @@ and it doesn't prove it survives harder physical tasks like pushing or
 grasping. Those are real, open, and logged as future work — not quietly
 implied to already be solved.
 
-That's the project as it stands: seven stages, two real debugging sagas, one
-sanity check that turned out to matter more than expected, and a robot that
-takes English instructions live and actually changes its mind when you tell
-it something new.
+That's the project as it stands after Phase 1: seven stages, two real
+debugging sagas, one sanity check that turned out to matter more than
+expected, and a robot that takes English instructions live and actually
+changes its mind when you tell it something new.
+
+---
+
+## 2026-07-28 — Phase 2a: swapping sentences for real commands
+
+Phase 1 proved the core trick — a sentence can pick a target, and the robot
+can be told something new mid-task. But every sentence in that whole
+project snapped to one of 7 fixed regions under the hood. "Reach up high"
+and "raise your arm as high as it will go" both collapsed to the same
+single point. That's fine for proving the mechanism, but it's not what
+"understand a command" should mean long-term.
+
+Phase 2a's job was to build the layer sentences will eventually plug into,
+*without* the language model in the loop yet — deliberately, so any bugs
+in this new layer can't be blamed on language understanding, and vice
+versa. Four stages: check that "left" on screen actually looks like left
+on camera (still waiting on me to actually watch those clips — deferred,
+not blocking); prove the robot can shift itself relative to wherever it
+already is, not just toward a target it started the episode with; prove
+it can chain several of those moves together with no reset in between;
+and finally wrap all of that behind a small typed command language
+(`goto`, `move`, `waypoints`, `stop`, `reset`) that a future language
+layer — or a human typing directly — can drive.
+
+All three of the stages that didn't need my own eyes came back clean.
+Relative moves: perfect, in every direction, at every distance tried.
+Waypoint chains: the first attempt at this one only tested a single
+trained robot, which the review process correctly flagged as not enough
+evidence — rerunning across all the healthy robots confirmed zero chains
+broke down partway through. The typed-command wrapper: wiring the same
+mechanisms behind actual parsed text changed nothing measurable, and it
+correctly rejects garbled input instead of guessing what you meant. The
+one genuinely new thing tested — does `stop` actually make the robot hold
+still — came back with an honest, slightly imperfect answer: it settles to
+within a couple centimeters and stays there, rather than drifting further,
+which makes sense for a robot that was never trained to just sit still on
+command.
+
+Next up is the part that actually needed all of this scaffolding: teaching
+a language model to speak this typed-command language instead of picking
+from 7 fixed buckets.
