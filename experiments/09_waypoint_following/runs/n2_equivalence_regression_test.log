@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.12, pytest-9.1.1, pluggy-1.6.0 -- /Users/eoinmca/Projects/lang-goal-rl/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/eoinmca/Projects/lang-goal-rl
+configfile: pyproject.toml
+plugins: anyio-4.14.2
+collecting ... collected 20 items
+
+tests/lang_goal_rl/test_waypoint_following.py::TestEquivalenceWithMidepisodeRegoal::test_n2_waypoints_matches_goal_switch_success_and_step_count PASSED [  5%]
+tests/lang_goal_rl/test_waypoint_following.py::TestEquivalenceWithMidepisodeRegoal::test_n2_waypoints_matches_goal_switch_on_guaranteed_success_case PASSED [ 10%]
+tests/lang_goal_rl/test_waypoint_following.py::TestRolloutWithWaypointsBasics::test_returns_waypoint_result PASSED [ 15%]
+tests/lang_goal_rl/test_waypoint_following.py::TestRolloutWithWaypointsBasics::test_single_int_steps_per_leg_applies_to_every_leg PASSED [ 20%]
+tests/lang_goal_rl/test_waypoint_following.py::TestRolloutWithWaypointsBasics::test_no_reset_happens_between_legs PASSED [ 25%]
+tests/lang_goal_rl/test_waypoint_following.py::TestRolloutWithWaypointsBasics::test_policy_sees_each_legs_goal_for_exactly_its_own_budget PASSED [ 30%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_leg_boundaries_are_cumulative_step_counts[3] PASSED [ 35%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_leg_boundaries_are_cumulative_step_counts[4] PASSED [ 40%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_leg_boundaries_are_cumulative_step_counts[5] PASSED [ 45%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_all_succeeded_is_exactly_all_of_per_waypoint_success[3] PASSED [ 50%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_all_succeeded_is_exactly_all_of_per_waypoint_success[4] PASSED [ 55%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_all_succeeded_is_exactly_all_of_per_waypoint_success[5] PASSED [ 60%]
+tests/lang_goal_rl/test_waypoint_following.py::TestChainLengths::test_all_succeeded_true_when_every_leg_is_guaranteed_reachable PASSED [ 65%]
+tests/lang_goal_rl/test_waypoint_following.py::TestEarlierLegFailureBehavior::test_leg_failure_does_not_abort_remaining_legs PASSED [ 70%]
+tests/lang_goal_rl/test_waypoint_following.py::TestEarlierLegFailureBehavior::test_leg_success_does_not_leak_into_a_later_failing_leg PASSED [ 75%]
+tests/lang_goal_rl/test_waypoint_following.py::TestValidation::test_rejects_empty_waypoints PASSED [ 80%]
+tests/lang_goal_rl/test_waypoint_following.py::TestValidation::test_rejects_steps_per_leg_sequence_of_wrong_length PASSED [ 85%]
+tests/lang_goal_rl/test_waypoint_following.py::TestValidation::test_rejects_non_positive_leg_budget PASSED [ 90%]
+tests/lang_goal_rl/test_waypoint_following.py::TestValidation::test_rejects_max_steps_below_total_leg_budget PASSED [ 95%]
+tests/lang_goal_rl/test_waypoint_following.py::TestValidation::test_rejects_total_budget_exceeding_envs_registered_limit PASSED [100%]
+
+============================== 20 passed in 1.37s ==============================
