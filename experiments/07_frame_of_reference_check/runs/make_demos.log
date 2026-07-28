@@ -1,0 +1,19 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_0.zip (no training, eval-only)
+centroid (phase-1 target, all directions): [1.3418948015976075, 0.7491456945385535, 0.5346916630647757]
+[reach forward] axis=x sign=positive attempt=1/3 seed=7000 target=[1.4667034095018208, 0.8152718040080899, 0.48870972042456773] success=True n_steps=50 total_travel=0.1907
+[reach back] axis=x sign=negative attempt=1/3 seed=7010 target=[1.194954519730092, 0.7677843523945518, 0.5148553391255815] success=True n_steps=50 total_travel=0.2011
+[reach left] axis=y sign=positive attempt=1/3 seed=7020 target=[1.3343725750669604, 0.8947312284255314, 0.6007598026502391] success=True n_steps=50 total_travel=0.2033
+[reach right] axis=y sign=negative attempt=1/3 seed=7030 target=[1.4201145011287868, 0.6589026609062414, 0.4763224854805385] success=True n_steps=50 total_travel=0.1625
+[reach up high] axis=z sign=positive attempt=1/3 seed=7040 target=[1.475367133947708, 0.6487442791548743, 0.6819171368047159] success=True n_steps=50 total_travel=0.2590
+[reach down low] axis=z sign=negative attempt=1/3 seed=7050 target=[1.2717223204616728, 0.6350663503964354, 0.3970081534460837] success=True n_steps=50 total_travel=0.2109
+
+=== summary ===
+reach forward (axis=x, sign=positive): success=True attempts_used=1/3 seed=7000 n_steps=50 total_travel=0.1907 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_forward.gif
+reach back (axis=x, sign=negative): success=True attempts_used=1/3 seed=7010 n_steps=50 total_travel=0.2011 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_back.gif
+reach left (axis=y, sign=positive): success=True attempts_used=1/3 seed=7020 n_steps=50 total_travel=0.2033 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_left.gif
+reach right (axis=y, sign=negative): success=True attempts_used=1/3 seed=7030 n_steps=50 total_travel=0.1625 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_right.gif
+reach up high (axis=z, sign=positive): success=True attempts_used=1/3 seed=7040 n_steps=50 total_travel=0.2590 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_up_high.gif
+reach down low (axis=z, sign=negative): success=True attempts_used=1/3 seed=7050 n_steps=50 total_travel=0.2109 gif=/Users/eoinmca/Projects/lang-goal-rl/experiments/07_frame_of_reference_check/charts/reach_down_low.gif
