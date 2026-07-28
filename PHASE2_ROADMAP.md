@@ -14,7 +14,7 @@ that's Phase 2b. Each stage gates on a specific, falsifiable proof gate
 | # | Stage | Reuse | New build | Proof gate | Status | Report |
 |---|-------|-------|-----------|------------|--------|--------|
 | 7 | Frame-of-reference check | `AXIS_DIRECTIONS` (`goal_region_vocabulary.py`), `episode_recording.record_episode`'s render path | Before/after frame pairs per direction | Human visual sign-off that each direction looks correct on camera (deliberately not a numeric gate — see report) | Not started | — |
-| 8 | Relative-move validation | Literal-xyz SAC+HER checkpoint (stage 1/5), `midepisode_regoal.py`'s step-loop pattern | `relative_move.py` — `compute_relative_goal`, `rollout_with_relative_move` | Reaches relative-move targets (multiple directions/magnitudes/switch-points) at a rate matching a budget-matched fresh baseline | Not started | — |
+| 8 | Relative-move validation | Literal-xyz SAC+HER checkpoint (stage 1/5), `midepisode_regoal.py`'s step-loop pattern | `relative_move.py` — `compute_relative_goal`, `rollout_with_relative_move` | Reaches relative-move targets (multiple directions/magnitudes/switch-points) at a rate matching a budget-matched fresh baseline | **Done (10 seeds) — 1.000/1.000 (rm/baseline) on 8 healthy seeds across all 6 directions, 3 magnitudes, 3 switch-points; no direction-lopsidedness. Seeds 2/7 show the known SAC collapse, degrading both conditions proportionally.** | [report](experiments/08_relative_move_validation/report.md) |
 | 9 | Waypoint following | Same checkpoint, `rollout_with_goal_switch` | `waypoint_following.py` — `rollout_with_waypoints` | N=2 reduces exactly to stage 5's `rollout_with_goal_switch` result (regression test); N=3-5 chains don't show compounding degradation | Not started | — |
 | 10 | Typed-command interface | Stage 8/9 modules, `interactive_demo.py`'s live loop | `command_grammar.py`, `command_executor.py`, `--interface commands` flag | Scripted harness: goto/move/waypoint success rates match stages 8-9; malformed input rejected with a clear error, not a silent guess | Not started | — |
 
@@ -36,4 +36,9 @@ live in each stage's linked report._
 
 ## New risks (Phase 2a, tracked as they're found)
 
-_(none yet — stage 7 not started)_
+- **Stage 7 sign-off still pending, non-blocking**: `DIRECTION_UNIT_VECTORS`
+  in `relative_move.py` mirrors `AXIS_DIRECTIONS`'s labels, unconfirmed
+  against what a viewer actually sees on camera. Stage 8's PASS is about
+  the relative-move *mechanism*, not the *labels* — a human visual sign-off
+  on stage 7's clips (`experiments/07_frame_of_reference_check/`) is still
+  needed before treating "reach left" as verified to mean visual-left.

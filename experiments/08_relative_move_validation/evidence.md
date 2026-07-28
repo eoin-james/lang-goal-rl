@@ -97,5 +97,65 @@ seed 2's literal-goal sanity check scored 0.000 (< 0.8) -- resembles the known S
 **Direction-sensitivity, not just distance (stage 4)**: the by-direction breakdown table above is the direct check this risk requires -- see report.md for whether any direction under- or over-performs its peers. **SAC deterministic-eval collapse (~20% of seeds, confirmed stage 1)**: checked via the sanity-check table above before trusting any relative-move result from that seed; healthy-seed breakdown tables exclude any seed matching the collapse signature. **Non-stationarity at stage 5**: not directly applicable here -- stage 8 tests a different mid-episode capability (relative move from an arbitrary achieved position, not a caller-supplied literal goal switch), though it shares the same budget-matched-baseline comparison methodology. **Region-vs-point / NN-lookup coverage density**: not applicable -- this stage uses exact literal xyz throughout, no embedding substitution engaged, deliberately isolating the relative-move mechanism from every embedding-layer confound stages 2-4 spent effort on.
 
 ### Reviewer verdict
-_Left blank by the runner — filled in by the manager from the reviewer's
-return._
+
+**Verdict: PASS**
+
+**Check 1 -- numbers, independently re-derived.** Healthy-8-seed aggregate
+(8638/8640 = 0.99977, rounds to 1.000) and full-10-seed aggregate
+(9222/10800 rm = 0.854, 9278/10800 baseline = 0.859) both re-summed
+directly from every seed's raw per-episode JSON, not taken from the
+report's own tables.
+
+**Check 2 -- truly zero-shot.** Confirmed from the run script: loads
+`experiments/01_uvfa_her_baseline/checkpoints/seed_<k>.zip` via `SAC.load()`,
+never calls `.learn()` or any training method.
+
+**Check 3 -- direction-lopsidedness, checked directly, not accepted on
+faith.** Among the 7 seeds scoring a perfect 1.000, all 6 directions are
+exactly 1.000 -- zero variation. Seed 3's single sub-1.0 point brings
+"reach left" to 0.999 (2 failed episodes out of 1440 for that direction) --
+not a lopsidedness pattern, a near-isolated stochastic edge case.
+
+**Check 4 -- the one sub-1.0 data point (seed 3, switch_step=40, reach
+left, clip-forcing).** Verified genuinely isolated: the identical combo
+scores 1.000 on all 7 other healthy seeds; seed 3 itself scores 1.000 on
+all 53 of its other combos. The two failing episodes are specific,
+non-recurring instances, not a systematic gap. "One data point, not a
+pattern" holds up under direct inspection.
+
+**Check 5 -- judged against the correct (clipped) target.** Confirmed in
+code: `_run_goal_phase` receives `resolved_target` (already clipped);
+`rollout_fresh_with_budget` receives the identical `resolved_target_xyz`;
+`info["is_success"]` compares against `env.unwrapped.goal`, set to the
+resolved target in both conditions. The clip-forcing bucket's near-1.000
+result is genuine, not an artifact of judging against something
+unreachable.
+
+**Check 6 -- seeds 2/7 framing.** Justified by the evidence: both
+conditions (relative-move and baseline) degrade proportionally on these
+two seeds (seed 7: rm=0.510 vs bl=0.552, a near-identical gap), consistent
+with the SAC deterministic-eval-collapse signature documented since stage
+1 and confirmed present in these exact two seeds at every prior stage this
+project has checked them.
+
+**Check 7 -- known-risks cross-check.** Direction-sensitivity (stage 4):
+NOT confirmed here -- all 6 directions effectively identical. SAC collapse:
+confirmed present, handled consistently with every prior stage. NN-lookup
+coverage and "live" ambiguity: correctly not applicable, no embedding
+layer engaged in this stage.
+
+**Check 8 -- does the unresolved Stage 7 sign-off affect this verdict?**
+No, correctly out of scope. This stage's proof gate is about whether the
+mechanism reaches a relative-move target computed from an arbitrary
+achieved position -- not whether "reach left" is correctly labeled in
+camera-frame terms. The injectable `direction_vectors` parameter design
+cleanly separates mechanism correctness (settled here) from label
+correctness (still pending).
+
+**Recommendation to manager:** Mark Done in `PHASE2_ROADMAP.md`. Flag for
+downstream: this is a clean, near-ceiling result on FetchReach-v4's
+literal-xyz task, consistent with every prior stage's informativeness
+ceiling (an oracle solves this task in ~3-5 steps) -- a single relative
+move apparently isn't hard for this policy. Stage 9's waypoint chaining is
+the first real test of whether accumulated imprecision over multiple
+sequential moves degrades, since one move alone clearly doesn't.
