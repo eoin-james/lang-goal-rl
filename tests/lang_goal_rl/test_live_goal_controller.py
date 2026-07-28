@@ -57,6 +57,36 @@ class TestLiveGoalControllerCaching:
         assert call_sizes == [84, 1, 1, 1]
 
 
+class TestLiveGoalControllerReferenceEmbeddings:
+    """reference_embeddings: read-only access to the cached 84-sentence reference."""
+
+    def test_exposes_one_row_per_reference_instruction(self) -> None:
+        controller = LiveGoalController(_make_encoder(), n_target_samples=20, seed=0)
+        instructions, _regions = combined_instructions_and_regions()
+
+        assert controller.reference_embeddings.shape == (len(instructions), 384)
+
+    def test_does_not_trigger_a_second_encoding_of_the_reference_set(
+        self, monkeypatch
+    ) -> None:  # noqa: ANN001
+        call_sizes: list[int] = []
+        original_encode = live_goal_controller_module.encode_instructions
+
+        def counting_encode(instructions, **kwargs):  # noqa: ANN001, ANN003, ANN202
+            call_sizes.append(len(instructions))
+            return original_encode(instructions, **kwargs)
+
+        monkeypatch.setattr(combined_vocabulary_module, "encode_instructions", counting_encode)
+        monkeypatch.setattr(live_goal_controller_module, "encode_instructions", counting_encode)
+
+        controller = LiveGoalController(_make_encoder(), n_target_samples=20, seed=0)
+        call_sizes.clear()
+        _ = controller.reference_embeddings
+        _ = controller.reference_embeddings
+
+        assert call_sizes == []
+
+
 class TestLiveGoalControllerLookup:
     """instruction_to_goal_embedding: sentence -> 384-dim embedding -> k=1 NN -> 16-dim goal embedding."""
 

@@ -105,6 +105,18 @@ class LiveGoalController:
             combined_instructions_and_regions()
         )
 
+    @property
+    def reference_embeddings(self) -> np.ndarray:
+        """The 84-sentence reference vocabulary's cached raw sentence embeddings, shape (84, 384).
+
+        Exposed read-only so a caller can build its own diagnostics on top of the exact
+        reference this class already pays to encode once at construction (e.g. an interactive
+        demo's match-quality baseline, comparing a live instruction's `GoalMatch.distance`
+        against how far the 84 references typically sit from each other) without paying to
+        re-encode the same 84 sentences a second time.
+        """
+        return self._reference_embeddings
+
     def instruction_to_goal_embedding(self, instruction: str) -> torch.Tensor:
         """Map one live English instruction to its 16-dim goal embedding.
 

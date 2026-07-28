@@ -1,7 +1,9 @@
 # Roadmap
 
-End state: an RL agent that accepts ad-hoc English instructions live during an
-episode and re-targets a continuous goal accordingly.
+This is Phase 1 of a longer-running research program — see [PHASES.md](PHASES.md)
+for where it fits and what's planned next. Phase 1's end state: an RL agent
+that accepts ad-hoc English instructions live during an episode and
+re-targets a continuous goal accordingly.
 
 Each stage gates on a specific, falsifiable proof. Don't start the next stage
 until the current one's proof passes — update the Status column as you go.
@@ -207,3 +209,26 @@ numbers, charts, and any candidate comparison live in the linked report._
   implies. Treat this mechanism as demonstrated, not as proven to
   generalize to arbitrary open-ended input — growing/validating the
   reference set remains real, unstarted future work, not a solved problem.
+- **"Live" needs a precise meaning, not yet stated anywhere (unresolved)**:
+  stage 6's published numbers (Set A/Set B mean and median success,
+  time-to-redirect) come from `live_regoal_eval.py`, a scripted harness that
+  calls `LiveGoalController` programmatically across many seeds and episodes
+  — not from a person typing at a terminal in real time. The only tool where
+  a human actually types an instruction live and watches it happen is
+  `lang_goal_rl.interactive_demo`, and no reported statistic in this project
+  comes from a session with that tool. "Live" in this project's headline
+  claim means "the mechanism runs end-to-end without a reset, on real-time
+  render steps" — it does not mean "measured from human-typed input." Future
+  write-ups should say which one is meant rather than leaving it implicit.
+- **Reproducibility gaps (unresolved, blocks a clean-checkout reproduction)**:
+  no single top-level command reproduces a chosen stage's numbers from a
+  clean checkout — each stage's `train.py`/`eval*.py` must be invoked
+  directly, with its own hardcoded seed ranges and checkpoint paths. Model
+  downloads, hardware expectations, and approximate per-stage runtime are not
+  documented anywhere. It has not been confirmed whether any reproduction
+  step depends on absolute paths baked into saved logs from the original
+  development machine. And it is not stated, per stage, which reported
+  numbers reproduce from committed checkpoints/artifacts alone versus require
+  full retraining. None of this affects the validity of the results already
+  measured — it affects whether someone else can independently re-measure
+  them.
