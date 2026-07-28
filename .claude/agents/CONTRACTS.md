@@ -81,6 +81,20 @@ something that was going to fail obviously anyway. The **final report and
 reviewer verdict always need the full 10** — the 3-seed pass is a cheap
 early signal, never a substitute for the real gate.
 
+## Milestone close-out: update the log + consider a blog entry
+
+After any stage/phase reaches a real milestone (a PASS, a major debugging
+saga resolved, a significant pivot), the manager updates
+`.claude/RESEARCH_LOG.md` (dated, terse entry — the actual research
+reasoning: what was tried, why, what the dead end taught) and considers a
+`BLOG.md` entry (casual, portfolio-facing narrative) — alongside, not
+instead of, the existing `STATUS.md`/`ROADMAP.md` update. `RESEARCH_LOG.md`
+maintenance is a manager responsibility, not `thesis-research-agent`'s —
+that persona is scoped to `LITERATURE.md` (citations) and explicitly does
+not judge experimental results; research-reasoning entries need synthesis
+across the builder/runner/reviewer roles the manager already does when
+closing out a stage.
+
 ## Reuse trained policies across stages, don't retrain by default
 
 If a later stage's zero-shot test only needs an already-trained policy

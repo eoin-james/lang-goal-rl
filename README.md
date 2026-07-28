@@ -6,7 +6,8 @@ ad-hoc English instructions live during an episode.
 
 Staged plan and current status: see [ROADMAP.md](ROADMAP.md). This is Phase 1
 of a longer-running research program — see [PHASES.md](PHASES.md) for the
-phase structure and what's planned next.
+phase structure and what's planned next. For the casual, first-person story
+of building this — including the debugging sagas — see [BLOG.md](BLOG.md).
 
 ## Layout
 

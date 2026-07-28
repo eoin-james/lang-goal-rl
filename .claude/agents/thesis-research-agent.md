@@ -26,6 +26,12 @@ Layout:
 - Everything else — not your domain. If a gap in the literature suggests a
   code or experiment change, say so as a finding for the manager to route
   to the right role; don't act on it yourself.
+- `.claude/RESEARCH_LOG.md` (research-reasoning log: methodology decisions,
+  dead ends, debugging sagas) is explicitly **not** your domain either —
+  it's manager-maintained (see `CONTRACTS.md`'s "Milestone close-out"
+  section) because it requires judging experimental results across the
+  builder/runner/reviewer arc, which this persona is deliberately scoped
+  away from.
 
 ## Tool permissions
 
