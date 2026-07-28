@@ -561,3 +561,62 @@ class TestRolloutFreshWithBudget:
                 base_seed=PROBE_SEED,
             )
         env.close()
+
+
+class TestSharedStepLoopRefactorRegression:
+    """Stage 8's `_run_goal_phase` factoring must not change this module's public behavior.
+
+    `midepisode_regoal.py` originally inlined its step loop separately in
+    `rollout_with_goal_switch` (twice, once per phase) and
+    `rollout_fresh_with_budget`. Stage 8 factored a shared
+    `_run_goal_phase` helper out of all three call sites so
+    `relative_move.rollout_with_relative_move` could reuse the identical
+    first phase. Every test above already re-runs unchanged and passing --
+    this test additionally pins a concrete, hand-computable end-to-end
+    scenario across both public functions together, so a future change to
+    the shared helper that broke either caller in a way the per-function
+    tests happened not to cover would still be caught here.
+    """
+
+    def test_goal_switch_and_fresh_baseline_agree_on_a_known_deterministic_scenario(
+        self,
+    ) -> None:
+        # A zero-action policy barely moves achieved_goal (~2e-4m/step, far
+        # under the 0.05m distance_threshold), so setting the post-switch /
+        # fresh goal to the exact achieved_goal 2 steps after a fresh reset
+        # guarantees success in both functions, deterministically, without
+        # depending on any real trained policy.
+        probe_env = gym.make(ENV_ID)
+        guaranteed_reachable_point = _achieved_goal_after_n_zero_steps(
+            probe_env, seed=PROBE_SEED, n_steps=2
+        )
+        probe_env.close()
+
+        switch_env = gym.make(ENV_ID)
+        switch_model = _RecordingStubModel(switch_env)
+        switch_result = rollout_with_goal_switch(
+            switch_model,
+            switch_env,
+            initial_goal_xyz=np.array([1.3, 0.7, 0.5]),
+            switch_step=2,
+            new_goal_xyz=guaranteed_reachable_point,
+            max_steps=4,
+            base_seed=PROBE_SEED,
+        )
+        switch_env.close()
+
+        fresh_env = gym.make(ENV_ID)
+        fresh_model = _RecordingStubModel(fresh_env)
+        fresh_result = rollout_fresh_with_budget(
+            fresh_model,
+            fresh_env,
+            goal_xyz=guaranteed_reachable_point,
+            max_steps=2,
+            base_seed=PROBE_SEED,
+        )
+        fresh_env.close()
+
+        assert switch_result.success is True
+        assert switch_result.n_steps == 4
+        assert switch_result.switch_step == 2
+        assert fresh_result is True

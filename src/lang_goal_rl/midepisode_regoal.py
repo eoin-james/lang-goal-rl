@@ -146,6 +146,65 @@ def _goal_input_context(
     return _pin_desired_goal_embedding(features_extractor, embedding)
 
 
+def _run_goal_phase(
+    model: SAC,
+    env: gym.Env,
+    obs: dict,
+    goal: npt.NDArray[np.floating],
+    *,
+    max_phase_steps: int,
+    terminated: bool,
+    truncated: bool,
+    embedding: torch.Tensor | None = None,
+) -> tuple[dict, bool, bool, int, bool]:
+    """Pin `goal` into the env and step until `max_phase_steps` steps run or the episode ends.
+
+    The shared step-loop both `rollout_with_goal_switch`'s two phases and
+    `rollout_fresh_with_budget` reduce to -- factored out so
+    `relative_move.rollout_with_relative_move` (stage 8) can run an
+    identical first phase and then read `obs["achieved_goal"]` off the
+    result to compute its target, without a second, independently
+    maintained copy of this loop. Writes `goal` into both
+    `env.unwrapped.goal` and `obs["desired_goal"]` before the first step, so
+    the very first `predict` call already sees the new goal -- matching
+    this module's original (pre-factoring) behavior exactly.
+
+    Args:
+        model: A trained SAC model (or literal-xyz-compatible stub).
+        env: The env instance to step.
+        obs: The observation to start from (typically fresh off `env.reset`
+            or a prior `_run_goal_phase` call).
+        goal: The xyz goal to pin for this phase, shape `(3,)`.
+        max_phase_steps: Maximum number of steps to run in this phase.
+        terminated: Whether the episode was already terminated before this
+            phase starts (passed through from a prior phase; if `True`, no
+            steps run).
+        truncated: Same as `terminated`, for truncation.
+        embedding: If given, additionally pins the policy's desired-goal
+            input to this fixed embedding for the duration of the phase, via
+            `_goal_input_context`. `None` means literal-xyz mode -- no
+            embedding substitution, `model.actor` never touched.
+
+    Returns:
+        A 5-tuple `(obs, terminated, truncated, steps_run, phase_success)`:
+        the updated observation, updated termination flags, how many steps
+        actually ran (may be less than `max_phase_steps` if the episode
+        ended first), and whether `info["is_success"]` was truthy on the
+        phase's final step (`False` if no step ran).
+    """
+    env.unwrapped.goal = np.asarray(goal, dtype=np.float64).copy()
+    obs["desired_goal"] = env.unwrapped.goal.copy()
+    phase_success = False
+    steps_run = 0
+    with _goal_input_context(model, embedding):
+        while steps_run < max_phase_steps and not (terminated or truncated):
+            action, _state = model.predict(obs, deterministic=True)
+            obs, _reward, terminated, truncated, info = env.step(action)
+            phase_success = bool(info.get("is_success", phase_success))
+            steps_run += 1
+    return obs, terminated, truncated, steps_run, phase_success
+
+
 def rollout_with_goal_switch(
     model: SAC,
     env: gym.Env,
@@ -227,29 +286,32 @@ def rollout_with_goal_switch(
     new_goal = np.asarray(new_goal_xyz, dtype=np.float64)
 
     obs, _info = env.reset(seed=base_seed)
-    env.unwrapped.goal = initial_goal.copy()
-    obs["desired_goal"] = initial_goal.copy()
 
-    n_steps = 0
-    terminated = truncated = False
-    with _goal_input_context(model, initial_goal_embedding):
-        while n_steps < switch_step and not (terminated or truncated):
-            action, _state = model.predict(obs, deterministic=True)
-            obs, _reward, terminated, truncated, _info = env.step(action)
-            n_steps += 1
+    obs, terminated, truncated, phase1_steps, _phase1_success = _run_goal_phase(
+        model,
+        env,
+        obs,
+        initial_goal,
+        max_phase_steps=switch_step,
+        terminated=False,
+        truncated=False,
+        embedding=initial_goal_embedding,
+    )
 
-    env.unwrapped.goal = new_goal.copy()
-    obs["desired_goal"] = new_goal.copy()
-    is_success = False
+    obs, terminated, truncated, phase2_steps, is_success = _run_goal_phase(
+        model,
+        env,
+        obs,
+        new_goal,
+        max_phase_steps=max_steps - phase1_steps,
+        terminated=terminated,
+        truncated=truncated,
+        embedding=new_goal_embedding,
+    )
 
-    with _goal_input_context(model, new_goal_embedding):
-        while not (terminated or truncated) and n_steps < max_steps:
-            action, _state = model.predict(obs, deterministic=True)
-            obs, _reward, terminated, truncated, info = env.step(action)
-            is_success = bool(info.get("is_success", is_success))
-            n_steps += 1
-
-    return GoalSwitchResult(success=is_success, n_steps=n_steps, switch_step=switch_step)
+    return GoalSwitchResult(
+        success=is_success, n_steps=phase1_steps + phase2_steps, switch_step=switch_step
+    )
 
 
 def rollout_fresh_with_budget(
@@ -294,16 +356,8 @@ def rollout_fresh_with_budget(
     goal = np.asarray(goal_xyz, dtype=np.float64)
 
     obs, _info = env.reset(seed=base_seed)
-    env.unwrapped.goal = goal.copy()
-    obs["desired_goal"] = goal.copy()
-
-    terminated = truncated = False
-    is_success = False
-    n_steps = 0
-    while not (terminated or truncated) and n_steps < max_steps:
-        action, _state = model.predict(obs, deterministic=True)
-        obs, _reward, terminated, truncated, info = env.step(action)
-        is_success = bool(info.get("is_success", is_success))
-        n_steps += 1
+    _obs, _terminated, _truncated, _steps_run, is_success = _run_goal_phase(
+        model, env, obs, goal, max_phase_steps=max_steps, terminated=False, truncated=False,
+    )
 
     return is_success
