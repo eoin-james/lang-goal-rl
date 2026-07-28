@@ -11,7 +11,11 @@ Language can select a continuous goal and redirect a reaching policy live,
 mid-episode. Full 7-stage breakdown, results, and known risks: see
 [ROADMAP.md](ROADMAP.md).
 
-## Phase 2 (planned): continuous live command agent
+## Phase 2 (in progress): continuous live command agent
+
+**Phase 2a is underway** — deterministic typed commands, relative-move
+validation, and waypoint following, no learned language grounding yet.
+Stage-by-stage record: [PHASE2_ROADMAP.md](PHASE2_ROADMAP.md).
 
 Replace the current seven-region sentence classification with a continuously
 running agent that accepts, interrupts, and executes parameterized motion
