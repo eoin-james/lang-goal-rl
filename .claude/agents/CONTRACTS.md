@@ -95,6 +95,69 @@ not judge experimental results; research-reasoning entries need synthesis
 across the builder/runner/reviewer roles the manager already does when
 closing out a stage.
 
+## Portfolio phase close-out
+
+A stage can pass its proof gate without making its containing phase
+portfolio-ready. A phase is complete only when a reader with no project
+context can discover, understand, inspect, and reproduce it from the
+repository's front page.
+
+Before marking a phase complete, all of the following must be true:
+
+1. **Front-page route:** `README.md` states the current phase and links
+   directly to its roadmap, result narrative, demos, and reproduction
+   instructions. Status documents must agree.
+2. **Stage record:** every stage has a short `report.md`, full `evidence.md`,
+   raw machine-readable results, and a completed independent verdict. Reports
+   separate measured facts from interpretation and state limitations beside
+   the headline result.
+3. **Phase narrative:** `BLOG.md` has a dated, blog-style close-out covering
+   the question, experimental progression, failures and corrections, final
+   evidence, demo, and honest claim boundary. It links to stage reports
+   instead of duplicating their tables.
+4. **Demo:** at least one representative demo shows the phase's final
+   capability. `demos/README.md` records what is shown, checkpoint, seed,
+   success verification, visual QA, and a regeneration command. Intermediate
+   or failed demos must be labeled clearly.
+5. **Reproduction:** one documented top-level command reproduces each stage's
+   reported evaluation from committed artifacts, and one regenerates its
+   demo. Training stages separately document full retraining. Commands must
+   work from a clean checkout without absolute local paths.
+6. **Environment contract:** supported platforms and Python version,
+   dependency setup, model-download/offline behavior, hardware expectations,
+   approximate runtime, disk use, and external artifact retrieval are
+   documented.
+7. **Verification:** tests and quality gates pass in a clean environment.
+   Intentionally excluded integration or hardware-dependent checks are named,
+   justified, and given separate commands.
+8. **Consistency and claim audit:** roadmaps, status, reports, verdicts,
+   links, seeds, checkpoints, demos, and portfolio claims agree. Exceptions
+   to shared experiment contracts require reviewer approval; disclosure alone
+   is not approval.
+9. **Release snapshot:** the phase has a versioned tag or release linking its
+   narrative, demos, reproduction commands, and known limitations.
+
+The manager checks `.claude/findings.md` before close-out. A phase is not
+portfolio-ready while an open finding materially blocks an item above.
+
+## Oversight agent — shared files, do not delete or revert
+
+`.claude/findings.md` and the "Portfolio phase close-out" section above are
+maintained by a separate oversight agent that may run concurrently with any
+builder/runner/reviewer session.
+
+- Do not delete, replace, clean up, or revert `.claude/findings.md` or the
+  Portfolio phase close-out section in this file.
+- Check `.claude/findings.md` before starting and before closing a stage or
+  phase. Resolve applicable findings with evidence, then mark them complete
+  rather than removing them.
+- A passed experiment does not make a phase portfolio-ready — follow every
+  requirement in the Portfolio phase close-out contract above.
+- Other agents may edit these files concurrently. Re-read them immediately
+  before writing and preserve changes you did not make. If a finding seems
+  obsolete or incorrect, leave it in place and flag it for oversight review
+  rather than removing it.
+
 ## Reuse trained policies across stages, don't retrain by default
 
 If a later stage's zero-shot test only needs an already-trained policy
