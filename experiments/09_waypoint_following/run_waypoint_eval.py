@@ -9,18 +9,19 @@ settled. What this script measures is new: whether the mechanism still holds
 up at N=3 and N=5, and whether it's robust to a tight per-leg step budget or
 only works when the budget is generous.
 
-Single checkpoint, zero-shot (per the task brief): `experiments/
-01_uvfa_her_baseline/checkpoints/seed_0.zip`, the same literal-xyz SAC+HER
-policy stage 5/6/8's Phase-2a work reuses, "for consistency across Phase
-2a" -- this is a deliberate departure from the usual multi-model-seed
-tiering (see CONTRACTS.md's tiered-seed strategy), because stage 9 is
-testing one mechanism's behavior on one already-validated policy, not
-measuring variance across differently-trained policies. In its place, the
-"tiered for speed" idea is applied along the episode-count axis instead:
-`--episodes` is run at a smaller count first (this script's own
-`--episodes 15` invocation), then scaled to the final count
-(`--episodes 50`) once the smaller pass showed no degenerate collapse. Both
-raw outputs are kept under `runs/`.
+Parameterized by `--seed` to select which of `experiments/
+01_uvfa_her_baseline/checkpoints/seed_<k>.zip` to load, zero-shot. The
+original run used only `seed_0` and applied "tiered for speed" along the
+episode-count axis instead of across model seeds -- reviewer feedback
+(see `evidence.md`'s Reviewer verdict) confirmed that departure from
+CONTRACTS.md's multi-seed convention left the "no compounding
+degradation" claim unable to distinguish "this mechanism is robust" from
+"this one already-oracle-solvable checkpoint has no room to fail." This
+script now runs identically across every healthy checkpoint (seeds
+0,1,3,4,5,6,8,9 -- excluding 2,7, the documented SAC deterministic-eval
+collapse seeds, ROADMAP.md Known risks) at the already-validated
+50-episodes/condition count; the original seed_0 tier1/final runs stay
+under `runs/` as-is, new seeds land under `runs/seed_<k>/`.
 
 Two waypoint-sequence kinds, both precomputed as absolute xyz *before* the
 episode starts (the stage-9 v1 scope limit -- see the plan's "Open items
@@ -68,13 +69,13 @@ from lang_goal_rl.relative_move import DIRECTION_UNIT_VECTORS, compute_relative_
 from lang_goal_rl.waypoint_following import rollout_with_waypoints
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
-CHECKPOINT_PATH = (
-    EXPERIMENT_DIR.parent / "01_uvfa_her_baseline" / "checkpoints" / "seed_0.zip"
-)
-"""The single literal-xyz checkpoint this whole experiment reuses zero-shot,
-per the task brief ("same checkpoint stage 8 uses, for consistency across
-Phase 2a") -- seed 0 avoids the known SAC deterministic-eval collapse seen
-on seeds 2 and 7 (ROADMAP.md Known risks)."""
+CHECKPOINT_DIR = EXPERIMENT_DIR.parent / "01_uvfa_her_baseline" / "checkpoints"
+"""Directory holding this project's stage-1 literal-xyz SAC+HER checkpoints,
+one per model seed -- this whole experiment reuses them zero-shot, per the
+task brief ("same checkpoint stage 8 uses, for consistency across Phase
+2a"). `main()`'s `--seed` argument selects `seed_<k>.zip` from here; never
+pass 2 or 7, the documented SAC deterministic-eval collapse seeds
+(ROADMAP.md Known risks)."""
 
 ENV_ID = "FetchReach-v4"
 
@@ -304,16 +305,19 @@ def run_condition(
 def main() -> None:
     """Run every (sequence_kind, chain_len, budget) condition and dump results to JSON."""
     parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, required=True, help="Model checkpoint seed (seed_<k>.zip); never 2 or 7")
     parser.add_argument("--episodes", type=int, required=True, help="Episodes per condition")
     parser.add_argument("--sanity-episodes", type=int, default=50)
     parser.add_argument("--tag", type=str, required=True, help="Tier tag, e.g. 'tier1' or 'final'")
     args = parser.parse_args()
 
+    checkpoint_path = CHECKPOINT_DIR / f"seed_{args.seed}.zip"
+
     gym.register_envs(gymnasium_robotics)
 
     sanity_env = gym.make(ENV_ID)
-    model = SAC.load(CHECKPOINT_PATH, env=sanity_env)
-    print(f"loaded checkpoint from {CHECKPOINT_PATH} (zero-shot, no new training)")
+    model = SAC.load(checkpoint_path, env=sanity_env)
+    print(f"loaded checkpoint from {checkpoint_path} (zero-shot, no new training, seed={args.seed})")
 
     sanity_rate = literal_goal_sanity_check(model, sanity_env, args.sanity_episodes)
     print(
@@ -329,7 +333,7 @@ def main() -> None:
         )
 
     env = gym.make(ENV_ID, max_episode_steps=ENV_MAX_EPISODE_STEPS)
-    model = SAC.load(CHECKPOINT_PATH, env=env)
+    model = SAC.load(checkpoint_path, env=env)
 
     condition_results = []
     condition_index = 0
@@ -362,13 +366,14 @@ def main() -> None:
 
     output = {
         "tag": args.tag,
-        "checkpoint": str(CHECKPOINT_PATH),
+        "model_seed": args.seed,
+        "checkpoint": str(checkpoint_path),
         "sanity_check_success_rate": sanity_rate,
         "sanity_check_episodes": args.sanity_episodes,
         "episodes_per_condition": args.episodes,
         "conditions": condition_results,
     }
-    results_path = EXPERIMENT_DIR / "runs" / f"{args.tag}_results.json"
+    results_path = EXPERIMENT_DIR / "runs" / f"seed_{args.seed}" / f"{args.tag}_results.json"
     results_path.parent.mkdir(parents=True, exist_ok=True)
     results_path.write_text(json.dumps(output, indent=2))
     print(f"results_saved={results_path}")

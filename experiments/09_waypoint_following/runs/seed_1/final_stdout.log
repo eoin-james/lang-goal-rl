@@ -1,0 +1,20 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+loaded checkpoint from /Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_1.zip (zero-shot, no new training, seed=1)
+sanity_check_success_rate=1.000 over 50 episodes (literal control, default 50-step episode, no waypoint chain)
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+kind=literal chain_len=2 budget=tight(9) chain_per_leg=[1.000, 1.000] baseline_per_leg=[1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=literal chain_len=2 budget=generous(18) chain_per_leg=[1.000, 1.000] baseline_per_leg=[1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=literal chain_len=3 budget=tight(9) chain_per_leg=[1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=literal chain_len=3 budget=generous(18) chain_per_leg=[1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=literal chain_len=5 budget=tight(9) chain_per_leg=[1.000, 1.000, 1.000, 0.980, 1.000] baseline_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] all_succeeded_rate=0.980 over 50 episodes
+kind=literal chain_len=5 budget=generous(18) chain_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=2 budget=tight(9) chain_per_leg=[1.000, 1.000] baseline_per_leg=[1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=2 budget=generous(18) chain_per_leg=[1.000, 1.000] baseline_per_leg=[1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=3 budget=tight(9) chain_per_leg=[1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=3 budget=generous(18) chain_per_leg=[1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=5 budget=tight(9) chain_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+kind=relative chain_len=5 budget=generous(18) chain_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] baseline_per_leg=[1.000, 1.000, 1.000, 1.000, 1.000] all_succeeded_rate=1.000 over 50 episodes
+results_saved=/Users/eoinmca/Projects/lang-goal-rl/experiments/09_waypoint_following/runs/seed_1/final_results.json
