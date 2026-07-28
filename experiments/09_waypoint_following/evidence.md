@@ -263,8 +263,54 @@ No pair shows a strictly-increasing failure rate with position.
 
 ### Reviewer verdict
 
-_Left blank by the runner — filled in by the manager from the reviewer's
-return. This document's prior INCONCLUSIVE verdict (against the seed_0-only
-result) is superseded by this 8-seed scale-up and has been removed rather
-than carried forward, since a fresh verdict is needed against the new
-evidence above -- see git history for the superseded verdict's full text._
+**Verdict: PASS**
+
+**Checks 1-3 -- independently re-derived, not re-read from the report.**
+All 8 sanity checks confirmed 1.000 directly from raw JSON, each checkpoint
+path matched its claimed seed. The multi-leg-failure scan was re-run from
+scratch across all 4,800 chain episodes (8 seeds x 12 conditions x 50
+episodes): true count is zero. All 32 (seed, chain-length>=3, tight-budget)
+pairs were re-checked for a monotonic pattern independently: 0 strictly
+increasing, 3 non-decreasing (each decomposing into isolated single-leg
+misses in different episodes, not one episode dragging forward), 8
+bump-then-recover (definitively non-monotonic). Agrees with the report's
+characterization on independent re-derivation, not just a read-through.
+
+**Check 4 -- a real, previously-unflagged finding, not a compounding
+signature.** In literal/N=5/tight, episode 34 fails at leg 4 for 6 of 8
+seeds (and episode 45 for 3 of 8) -- because the waypoint generator uses a
+fixed seed per episode index, every checkpoint sees the identical 5 goals
+for that episode, and leg 4's specific geometry is hard within a 9-step
+budget regardless of which checkpoint attempts it. Leg 5 still succeeds in
+every one of these failing episodes -- the failure does not propagate.
+This is a per-episode geometric-difficulty effect, not a compounding one,
+correctly distinguished from the thing this stage was checking for.
+
+**Check 5 -- N=2 regression unaffected.** 20/20 tests pass, log confirmed
+real and unaltered by the rerun; this equivalence is inherited from stage
+5's own 10-seed validation, not re-derived per checkpoint.
+
+**Check 6 -- seeds 2/7 genuinely excluded.** No `seed_2/`/`seed_7/`
+directories exist under `runs/`; consistent with how every prior stage in
+this project has handled these exact two seeds.
+
+**Check 7 -- does this resolve the first pass's INCONCLUSIVE?** Yes. The
+first pass's specific, named concern was checkpoint-dependent compounding
+that a single healthy-but-perfect-baseline checkpoint couldn't reveal.
+This rerun tests 8 independently-trained checkpoints under the identical
+protocol: no seed shows a multi-leg failure, no seed scores worse than
+seed_0's own original numbers, no seed shows a qualitatively different
+failure shape. That is a direct, adequate answer to the exact concern
+raised -- not just "more data was produced."
+
+**Known risks:** SAC collapse (stage 1) handled correctly, seeds 2/7
+excluded by design. Direction-sensitivity (stage 4) not probed here by
+design -- stage 8 is the right place, already checked there. Oracle-
+solvable ceiling (stages 1/3/5) re-observed, expected. Stage 7 sign-off
+still pending but non-blocking (label correctness is orthogonal to
+whether chains compound).
+
+**Recommendation to manager:** Mark Done in `PHASE2_ROADMAP.md`. This
+closes stage 9 -- all four Phase 2a stages that were runnable without a
+human sign-off are now resolved; only stage 10's own dependencies and
+stage 7's pending review remain open.
