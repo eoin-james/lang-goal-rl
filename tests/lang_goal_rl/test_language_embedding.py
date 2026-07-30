@@ -10,7 +10,19 @@ from __future__ import annotations
 
 import numpy as np
 
-from lang_goal_rl.language_embedding import LANGUAGE_EMBED_DIM, encode_instructions
+from lang_goal_rl.language_embedding import (
+    DEFAULT_MODEL_REVISION,
+    LANGUAGE_EMBED_DIM,
+    encode_instructions,
+)
+
+
+class TestDefaultModelRevision:
+    """The model revision is pinned to guard against silent upstream changes."""
+
+    def test_is_a_full_length_git_commit_hash(self) -> None:
+        assert len(DEFAULT_MODEL_REVISION) == 40
+        assert all(c in "0123456789abcdef" for c in DEFAULT_MODEL_REVISION)
 
 
 class TestEncodeInstructions:

@@ -26,6 +26,9 @@ if TYPE_CHECKING:
     import numpy.typing as npt
 
 DEFAULT_MODEL_NAME = "all-MiniLM-L6-v2"
+DEFAULT_MODEL_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+"""Pinned commit hash for `DEFAULT_MODEL_NAME`'s `main` branch (reproducibility:
+guards against a silent upstream change to the model's default revision)."""
 LANGUAGE_EMBED_DIM = 384
 """Output dimensionality of `all-MiniLM-L6-v2`. This is the projection
 layer's expected input size (see `language_goal_projection.py`)."""
@@ -38,7 +41,7 @@ def _load_model(model_name: str = DEFAULT_MODEL_NAME) -> SentenceTransformer:
     Cached (not reloaded per call) since loading is comparatively expensive
     and every call in this process uses the same frozen model.
     """
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, revision=DEFAULT_MODEL_REVISION)
 
 
 def encode_instructions(

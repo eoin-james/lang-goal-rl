@@ -571,3 +571,26 @@ collapse check has passed at every attempt (9.70x-143.85x margin). The
 four-attempt arc (scale → direction → eval-protocol) is itself worth
 preserving in full, not just the final number — it's the actual evidence
 that this passed for the right reason.
+
+### Reproduce
+Reproduces the final, passing attempt (4) only — not the three superseded
+attempts above. Uses the same 3 already-trained SAC checkpoints
+(`checkpoints/seed_<k>.zip`) and the attempt-3 projection checkpoint
+(`artifacts/language_goal_projection_v3.pt`, unchanged since attempt 4 only
+fixed the eval script's ground truth, not the projection); `--seed` has no
+default in `eval_fixed_projection.py`, so run all 3 seeds explicitly:
+```
+cd experiments/03_language_goal_projection
+uv run python eval_fixed_projection.py --seed 0 --projection-path artifacts/language_goal_projection_v3.pt
+uv run python eval_fixed_projection.py --seed 1 --projection-path artifacts/language_goal_projection_v3.pt
+uv run python eval_fixed_projection.py --seed 2 --projection-path artifacts/language_goal_projection_v3.pt
+```
+No retraining: loads each seed's checkpoint via `SAC.load(...)` and the v3
+projection via `load_projection(...)`, then runs `evaluate_literal` +
+`evaluate_language_goal` (the eval-protocol-fix version, fixed-centroid
+ground truth) exactly as attempt 4 did. Verified 2026-07-30, all 3 seeds:
+literal `success_rate=1.000` and all 14
+`language_success_rate=1.000` per instruction — an exact match to the
+Attempt 4 result table above (42/42 samples at 1.000), deterministic since
+both the checkpoints and the projection are frozen and the eval uses fixed
+region centroids.

@@ -120,3 +120,25 @@ visual sign-off; there is no numeric threshold for a `results-reviewer` to
 adjudicate, and no "Done" call should be made in `PHASE2_ROADMAP.md` until
 a human has actually watched all 6 clips and confirmed or corrected each
 direction's label.
+
+### Reproduce
+```
+uv run python make_demos.py
+```
+**This regenerates the 6 demo clips for visual review — it does not
+reproduce a numeric proof gate.** This stage's gate is the pending human
+sign-off described above; nothing in this section adjudicates or
+substitutes for it. No argument is needed: seed 0, `BASE_SEED=7000`, and
+`ATTEMPTS_PER_DIRECTION=3` are all hardcoded in `make_demos.py`, matching
+this evidence file's own per-direction table.
+
+**Verified 2026-07-30** by running the script against a scratch copy
+(never against this experiment's own committed `charts/*.gif`, since those
+are the exact clips still awaiting human sign-off): all 6 directions
+succeeded on attempt 1/3 with the same seeds, targets, `n_steps=50`, and
+`total_travel` values already recorded in the "Per-direction results" table
+above, and all 6 regenerated GIFs were **byte-for-byte identical** to the
+committed `charts/*.gif` files (`cmp -s`). Fully deterministic re-run — no
+discrepancy, nothing to flag. This confirms the clips are reproducible; it
+does not confirm the clips look correct on camera, which remains the open
+human judgment call.

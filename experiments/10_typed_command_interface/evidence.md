@@ -257,3 +257,47 @@ directional label correctness.
 **Recommendation to manager:** Mark Done in `PHASE2_ROADMAP.md`. This
 closes every stage in Phase 2a that didn't require a human sign-off — only
 stage 7's pending visual review remains open project-wide.
+
+### Reproduce
+```
+./launch_seeds.sh && uv run python check_malformed_input.py && uv run python aggregate_and_report.py
+```
+`launch_seeds.sh` (no arguments) defaults to the 8 healthy seeds `(0 1 3 4
+5 6 8 9)` this file's "Seeds run" header lists; `aggregate_and_report.py
+--seeds` defaults to the same list. Both reuse stage 1's checkpoints
+zero-shot (`experiments/01_uvfa_her_baseline/checkpoints/seed_<k>.zip`, no
+retraining). `check_malformed_input.py` takes no seed — it's a pure
+parser check, run once.
+
+**Caution -- do not run the commands above against this stage's own
+`runs/` casually.** `run_command_eval.py` always writes an absolute
+`"checkpoint"` path (built from `Path(__file__).resolve()`), so a fresh
+rerun's `"checkpoint"` field will not match the repo-relative string a
+separate path-hygiene pass has since rewritten the committed
+`runs/seed_*/results.json` files to -- expected and cosmetic, not a
+metrics discrepancy, but still a reason to verify in a scratch copy rather
+than overwrite in place. `aggregate_and_report.py` also overwrites
+`report.md`/`charts/*.png` in place with its own fixed-section-order
+render (not this hand-written `evidence.md`) — it was **not run** for
+this verification pass at all, on a separate flag that its
+`write_report(...)` call regenerates the project's old pre-split report
+template.
+
+**Verified 2026-07-30** (before the repo-relative path rewrite above
+landed), without running the aggregator: (1) `run_command_eval.py --seed 1
+--sanity-episodes 50`, run against a scratch copy in an isolated sibling
+directory (never against this experiment's own `runs/seed_1/`), reproduced
+`results.json` and the full 79-line stdout **byte-for-byte identical** to
+the then-committed files (deterministic SAC eval, fixed per-seed env
+seeding) -- every substantive field matched; only the `"checkpoint"` path
+field is expected to differ from today's committed value now that it has
+been rewritten to repo-relative, per the caution above. (2)
+`check_malformed_input.py`, run the same way, reproduced all 23/23
+malformed-case verdicts and 9/9 valid-control verdicts, and
+`malformed_input_check.json` **byte-for-byte identical** to the committed
+file (no checkpoint path involved in this check at all). (3) The pooled
+headline numbers in this file's tables were independently re-derived by
+hand from the 8 healthy seeds' already-committed `runs/seed_*/results.json`
+(no aggregator script run): sanity mean=1.000, goto pooled (N=800)
+pipeline=1.000/baseline=1.000, move overall pooled (N=8640)
+mean=1.000/baseline=1.000 — exact match, no discrepancy.

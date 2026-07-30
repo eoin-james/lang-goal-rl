@@ -179,3 +179,37 @@ already tracked, not a new instance.
 needed. Carry the scope caveat (literal goals only, short episodes, no
 language pipeline engaged) forward explicitly into stage 6's design rather
 than assuming this result generalizes.
+
+### Reproduce
+```
+cd experiments/05_midepisode_regoal
+./launch_seeds.sh 0 9
+```
+No retraining: each of the 10 backgrounded `run_regoal_eval.py` processes
+loads a zero-shot stage-1 checkpoint
+(`../01_uvfa_her_baseline/checkpoints/seed_<k>.zip`, already committed) via
+`SAC.load(...)` and runs the sanity check + all 4 switch_step evals against
+it. Verified 2026-07-30: re-ran all 10 seeds, per-seed sanity rates
+(0=1.000, 1=1.000, 2=0.000, 3=1.000, 4=1.000, 5=1.000, 6=1.000, 7=0.400,
+8=1.000, 9=1.000) and every seed's per-switch_step swap/baseline/
+full-budget numbers (spot-checked seeds 0, 2, 7 line-by-line against the
+tables above) match exactly — `git diff` on `runs/` after the re-run shows
+zero changes, i.e. bit-for-bit identical output, not just numerically close.
+
+**Deliberately excludes `aggregate_and_report.py` from this command, and
+this is a landmine worth flagging rather than working around silently:**
+`aggregate_and_report.py` calls `lang_goal_rl.reporting.write_report(...)`
+with `out_dir=EXPERIMENT_DIR`, which unconditionally overwrites
+`report.md`. `write_report`'s current template (`src/lang_goal_rl/
+reporting.py`) still renders the *old* full-technical-dump format (proof
+gate / result tables / charts / raw output / anomalies / known-risks /
+blank reviewer-verdict placeholder) directly into `report.md`. Commit
+`38c235a` ("docs: split every report.md into a short human-facing summary +
+evidence.md") rewrote every stage's `report.md` into the current short
+plain-English format *without* updating `write_report` to match — so
+running `aggregate_and_report.py` (or any other stage's `generate_report*.py`)
+today would silently regress `report.md` back to the pre-split format,
+destroying the short human-facing summary and the manually-transcribed
+reviewer verdict. This was not run for that reason. The underlying eval
+numbers are fully reproduced and verified above via `launch_seeds.sh`
+alone; only the report-rendering step is skipped, and skipped deliberately.

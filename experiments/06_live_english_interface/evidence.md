@@ -228,3 +228,33 @@ in ROADMAP and STATUS, not left implicit.
 scope statement in the Status text (mechanism proven end-to-end; coverage-
 density and cross-task generalization remain open, not claimed) rather
 than a bare "Done."
+
+### Reproduce
+```
+./launch_seeds.sh 0 2 && uv run python aggregate_and_report.py --seeds 0 1 2
+```
+Both commands use their own already-documented defaults (`launch_seeds.sh`
+defaults to seeds 0-2; `aggregate_and_report.py --seeds` defaults to
+`[0, 1, 2]`) -- no argument above is required, they're spelled out only for
+clarity. `launch_seeds.sh` reuses stage 3's already-trained SAC checkpoints
+zero-shot (`experiments/03_language_goal_projection/checkpoints/seed_<k>.zip`,
+no retraining) and overwrites `runs/seed_<k>/{stdout.log,results.json}`;
+`aggregate_and_report.py` overwrites this stage's `report.md` and
+`charts/*.png` with its own fixed-section-order render (not this
+hand-written `evidence.md`/plain-English `report.md` pair) -- expect to
+re-curate `report.md`'s prose and this file's "Reviewer verdict" after a
+real rerun, the same way they were produced originally.
+
+**Verified 2026-07-30** by running the pipeline against a scratch copy
+(never against this experiment's own committed `runs/`, `report.md`, or
+`charts/`, to avoid clobbering the canonical evidence used above):
+`live_regoal_eval.py --seed 0 --sanity-episodes 50 --control-episodes 50`
+reproduced `runs/seed_0/results.json` **byte-for-byte identical** to the
+committed file (deterministic SAC eval, `model.predict(..., deterministic=True)`,
+fixed per-seed env seeding), and `aggregate_and_report.py --seeds 0 1 2`
+run against the existing committed `runs/seed_{0,1,2}/results.json`
+reproduced every number in this file's tables exactly: Set A no-switch
+mean=0.571/median=1.000, Set B no-switch mean=0.857/median=1.000, Set A
+switch aggregate task_success_rate=0.548/redirect_success_rate=0.548 (42
+episodes), Set B switch aggregate task_success_rate=0.857/redirect_success_rate=0.857
+(21 episodes) -- exact match, no discrepancy.

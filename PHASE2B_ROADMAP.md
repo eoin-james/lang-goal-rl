@@ -12,8 +12,7 @@ arbitrary English into Phase 2a's deterministic typed-command language
 (`goto`/`move`/`waypoints`/`stop`/`reset`), instead of the old 7-fixed-
 region snap. Chosen architecture: small trained heads on top of the
 existing frozen sentence-transformer embeddings (`language_embedding.py`)
-— no LLM API, no new dependencies. Full plan:
-`/Users/eoinmca/.claude/plans/i-want-a-plan-melodic-breeze.md`.
+— no LLM API, no new dependencies.
 
 | # | Stage | Reuse | New build | Proof gate | Status | Report |
 |---|-------|-------|-----------|------------|--------|--------|

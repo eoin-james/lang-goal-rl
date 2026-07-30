@@ -224,6 +224,14 @@ and it doesn't prove it survives harder physical tasks like pushing or
 grasping. Those are real, open, and logged as future work — not quietly
 implied to already be solved.
 
+One more thing worth being precise about: the 55%/86% numbers above came
+from a scripted harness (`live_regoal_eval.py`) feeding both instructions
+in programmatically — the first at episode start, the second at a fixed
+switch step (step 20 of 50) — not a human typing them at a terminal in real
+time. The mechanism it drives is the exact same one a person typing at
+`interactive_demo.py`'s prompt invokes; only the source of the keystrokes
+differs.
+
 That's the project as it stands after Phase 1: seven stages, two real
 debugging sagas, one sanity check that turned out to matter more than
 expected, and a robot that takes English instructions live and actually

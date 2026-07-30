@@ -84,8 +84,9 @@ Layout:
    what the builder shipped — not new reusable logic. If it needs new logic,
    escalate to the manager to dispatch the builder instead of writing it
    yourself.
-3. Launch the 5 seeds (and candidates, if escalated) as capped concurrent
-   background processes per the hard rules above. Poll to completion.
+3. Launch the seeds per the tiered strategy (3 first, scale to 10 if clean —
+   and candidates, if escalated) as capped concurrent background processes
+   per the hard rules above. Poll to completion.
 4. Aggregate the per-seed (and per-candidate) metrics, generate charts via
    `lang_goal_rl.reporting`, and write `report.md` with the proof gate
    quoted verbatim and a blank "Reviewer verdict" section.

@@ -314,3 +314,51 @@ whether chains compound).
 closes stage 9 -- all four Phase 2a stages that were runnable without a
 human sign-off are now resolved; only stage 10's own dependencies and
 stage 7's pending review remain open.
+
+### Reproduce
+```
+uv run python run_waypoint_eval.py --seed 0 --episodes 50 --sanity-episodes 50 --tag final
+./launch_seeds.sh
+uv run python aggregate_and_report.py
+```
+Seed 0's own first-pass run predates `launch_seeds.sh`'s seed list, so it's
+run explicitly above with the same `--tag final` args `launch_seeds.sh`
+uses for every other seed; `launch_seeds.sh` (no arguments) then defaults
+to its own documented 7-seed healthy list `(1 3 4 5 6 8 9)` -- together the
+8 healthy seeds this file's "Seeds run" header lists. `aggregate_and_report.py`
+takes no arguments (its healthy-seed set, `HEALTHY_SEEDS = (0, 1, 3, 4, 5,
+6, 8, 9)`, is fixed in the script, matching this file throughout). Reuses
+stage 1's checkpoints zero-shot
+(`experiments/01_uvfa_her_baseline/checkpoints/seed_<k>.zip`, no
+retraining).
+
+**Caution -- do not run the commands above against this stage's own
+`runs/` casually.** `run_waypoint_eval.py` always writes an absolute
+`"checkpoint"` path (`str(checkpoint_path)`, built from `Path(__file__).resolve()`),
+so a fresh rerun's `"checkpoint"` field will not match the repo-relative
+string a separate path-hygiene pass has since rewritten the committed
+`runs/**/final_results.json` files to (see `experiments/README.md`'s note
+on that convention) -- expected, cosmetic, and not a metrics discrepancy,
+but still a reason to verify in a scratch copy rather than overwrite in
+place. `aggregate_and_report.py` also overwrites `report.md`/`charts/*.png`
+in place with its own fixed-section-order render (not this hand-written
+`evidence.md`).
+
+**Verified 2026-07-30** (before the repo-relative path rewrite above
+landed) by running seed 1 (one of the 7 seeds `launch_seeds.sh` covers)
+against a scratch copy of `run_waypoint_eval.py` in an isolated sibling
+directory -- never against this experiment's own `runs/seed_1/`:
+`--seed 1 --episodes 50 --sanity-episodes 50 --tag final` reproduced
+`final_results.json` **byte-for-byte identical** to the then-committed
+file (deterministic SAC eval, fixed per-seed env seeding). Every
+substantive field matched exactly; only the `"checkpoint"` path field is
+expected to differ from today's committed value now that it has been
+rewritten to repo-relative, per the caution above. Separately,
+`aggregate_and_report.py` was run against a scratch copy populated with
+the real, already-committed `final_results.json` for all 8 healthy seeds
+(read-only copies, real `runs/` left untouched) and reproduced every
+pooled table in this file exactly: N=2/3/5 pooled whole-chain rates
+(0.998/0.998/0.978 literal-tight, 1.000/1.000/1.000 for every generous
+condition, 1.000/0.998/0.990 relative-tight), the per-seed tight-budget
+breakdown tables, `multi_leg_failures_found=0/4800`, and
+`strictly_increasing_monotonic_pairs=0` -- exact match, no discrepancy.

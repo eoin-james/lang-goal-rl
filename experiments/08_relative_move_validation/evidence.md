@@ -159,3 +159,31 @@ ceiling (an oracle solves this task in ~3-5 steps) -- a single relative
 move apparently isn't hard for this policy. Stage 9's waypoint chaining is
 the first real test of whether accumulated imprecision over multiple
 sequential moves degrades, since one move alone clearly doesn't.
+
+### Reproduce
+```
+./launch_seeds.sh 0 9 && uv run python aggregate_and_report.py --seeds 0 1 2 3 4 5 6 7 8 9
+```
+`launch_seeds.sh` defaults to seeds 0-2 (its own `${2:-2}` default), so the
+full 10-seed range used for this stage's reported numbers is spelled out
+explicitly above; `aggregate_and_report.py --seeds` defaults to `[0, 1, 3]`
+(a 3-seed smoke default), so the full range is likewise spelled out to
+match "Seeds run: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]" in this file's header.
+Both reuse stage 1's already-trained checkpoints zero-shot
+(`experiments/01_uvfa_her_baseline/checkpoints/seed_<k>.zip`, no
+retraining) and overwrite `runs/seed_<k>/{stdout.log,results.json}` and
+this stage's `report.md`/`charts/*.png` (not this hand-written
+`evidence.md`).
+
+**Verified 2026-07-30** by running the pipeline against a scratch copy
+(never against this experiment's own committed `runs/`, `report.md`, or
+`charts/`): `run_relative_move_eval.py --seed 0 --episodes-per-combo 20
+--sanity-episodes 50` reproduced `runs/seed_0/results.json`
+**byte-for-byte identical** to the committed file (deterministic SAC eval,
+fixed per-seed env seeding), and `aggregate_and_report.py --seeds 0 1 2 3
+4 5 6 7 8 9` run against the existing committed `runs/seed_{0..9}/results.json`
+reproduced this file's headline numbers exactly: healthy-8-seed overall
+mean=1.000/median=1.000 (432 combos, 8640 episodes, clip rate=0.571) and
+all-10-seed overall mean=0.854/median=1.000 relative-move,
+mean=0.859/median=1.000 baseline (540 combos, 10800 episodes, clip
+rate=0.577) -- exact match, no discrepancy.

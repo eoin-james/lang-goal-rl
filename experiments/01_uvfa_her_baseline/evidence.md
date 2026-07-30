@@ -126,3 +126,28 @@ eval protocol or training budget needs investigation before this gate can
 pass. Optional cheap diagnostic for the next run: dump raw actions from a
 failed eval episode to distinguish "stuck at a constant/degenerate action"
 from "actively moving but missing the goal."
+
+### Reproduce
+```
+cd experiments/01_uvfa_her_baseline && uv run python -c "
+import gymnasium as gym, gymnasium_robotics
+from stable_baselines3 import SAC
+from train import ENV_ID, evaluate
+
+gym.register_envs(gymnasium_robotics)
+env = gym.make(ENV_ID)
+for seed in range(10):
+    model = SAC.load(f'checkpoints/seed_{seed}.zip', env=env)
+    print(f'seed_{seed} success_rate={evaluate(model, env, 50):.3f}')
+"
+```
+Loads each committed `checkpoints/seed_<k>.zip` and re-runs `train.py`'s own
+`evaluate()` (50 held-out episodes, `deterministic=True`, same
+`env.reset(seed=1000 + episode)` protocol as the original run) — no
+retraining. `SAC.load(...)` is the same eval-only checkpoint-loading
+pattern already used by `make_demo.py`. Verified 2026-07-30: reproduces the
+result table above exactly — `0=1.000, 1=1.000, 2=0.000, 3=1.000, 4=1.000,
+5=1.000, 6=1.000, 7=0.400, 8=1.000, 9=1.000` (mean 0.840) — since the
+checkpoint fixes the trained policy and both the eval-episode seeds and the
+policy's deterministic action are exact, this is bit-for-bit deterministic,
+not just within-noise.

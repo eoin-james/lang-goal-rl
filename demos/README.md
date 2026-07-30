@@ -306,6 +306,14 @@ of 30 steps of post-switch budget remaining
 finding made visible: one real episode, one live instruction swapped for
 another, the robot visibly changing its mind and reaching the new target.
 
+**This clip is illustrative, not a statistical claim** — the actual
+proof-gate numbers (0.548/0.857 switch success tracking their own no-switch
+baselines, median 3-step redirect time) come from a separate scripted
+harness (`live_regoal_eval.py`) across all 3 checkpoints and both
+vocabulary sets, not from this one clip; see
+`experiments/06_live_english_interface/report.md` and the
+`make_demo.py` script that generated this clip.
+
 **2026-07-27 audit, not regenerated (judgment call):** same treatment as
 clip 7. Pixel-diff shows an even more dynamic profile than clip 7: mean abs
 frame difference peaks at 1.45 over steps 0-2 (initial reach) and stays high

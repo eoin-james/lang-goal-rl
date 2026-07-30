@@ -459,3 +459,44 @@ directly).
 Full detail per stage: `experiments/08_relative_move_validation/report.md`,
 `experiments/09_waypoint_following/report.md`,
 `experiments/10_typed_command_interface/report.md`.
+
+---
+
+## Phase 2b: teaching a language layer to speak the typed-command language
+
+Phase 2a built a deterministic typed-command language (`goto`, `move`,
+`waypoints`, `stop`, `reset`) with no language model in the loop. Phase 2b's
+job is to teach a learned layer to translate arbitrary English into that
+language, instead of the old 7-fixed-region snap. Full stage-by-stage
+record: [PHASE2B_ROADMAP.md](PHASE2B_ROADMAP.md).
+
+| # | What it proves | Status |
+|---|---|---|
+| 11 | A sentence's command *type* (move/goto/waypoints/stop/reset/unsupported) can be classified reliably from frozen sentence embeddings | ✅ Done (took 3 attempts) |
+| 12 | A move command's direction and distance can be regressed continuously, not just classified | Paused for all-hands review |
+| 13 | Multi-part instructions can be split into separate move/waypoint legs | Not started |
+| 14 | The full pipeline grounds free English into typed commands end to end | Not started |
+| 15 | Live capstone: a third `interactive_demo.py` interface driven by free-form English | Not started |
+
+**Stage 11 done, stages 12-15 paused for review.** The first classifier
+attempt scored 0% on one of five command-type buckets — not a training
+failure but a data-design mistake: the builder reused Phase 1's
+directionally-phrased region vocabulary as training data for
+"go to a named spot," which taught the model the opposite convention from a
+real move instruction. Rewriting each class's vocabulary to carry its own
+honest phrasing fixed the 0% outright. That surfaced two smaller gaps (a
+stop idiom and an unhandled math question), closed additively in a third
+attempt. Final result: 98.08% held-out top-1 accuracy across all five
+classes with zero seed variance, 0% of held-out UNSUPPORTED sentences
+classified as anything actionable, 12/12 runs passing both proof-gate
+conditions. One non-blocking residual noted and left alone on purpose: two
+RESET idioms now collide with STOP's expanded vocabulary — bounded, doesn't
+violate either gate, tracked as a finding for whoever picks up stage 12+.
+
+Stages 12-15 are deliberately paused, not stalled — the plan calls for an
+all-hands review of stage 11's approach before committing to the same
+architecture for continuous regression. **Note:** Stage 7's human sign-off
+(Phase 2a) is still pending, separately — unrelated to Phase 2b's own
+progress, tracked in its own row above.
+
+Full detail: [experiments/11_command_type_classification/report.md](experiments/11_command_type_classification/report.md).

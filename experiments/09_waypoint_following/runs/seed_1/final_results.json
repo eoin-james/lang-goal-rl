@@ -1,7 +1,7 @@
 {
   "tag": "final",
   "model_seed": 1,
-  "checkpoint": "/Users/eoinmca/Projects/lang-goal-rl/experiments/01_uvfa_her_baseline/checkpoints/seed_1.zip",
+  "checkpoint": "experiments/01_uvfa_her_baseline/checkpoints/seed_1.zip",
   "sanity_check_success_rate": 1.0,
   "sanity_check_episodes": 50,
   "episodes_per_condition": 50,

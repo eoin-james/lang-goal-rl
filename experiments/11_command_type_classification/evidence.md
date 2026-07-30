@@ -465,3 +465,31 @@ residual (`"kick things off again"` 12/12 wrong, `"wipe the slate clean"`
 not a blocker. A `check_cross_class_embedding_overlap`-style diagnostic
 for STOP/RESET (mirroring the one already built for MOVE/GOTO) would catch
 this category of issue earlier next time.
+
+### Reproduce
+```
+uv run python run_eval.py
+```
+No arguments and no `--seed` flag — `run_eval.py` has no CLI, `main()`
+trains and evaluates all 4 configs x 3 classifier-init seeds (0, 1, 2) in
+one process, taking its data from `command_type_vocabulary.py`'s training
+set and `command_type_held_out_vocabulary.py`'s held-out set (no RL
+checkpoint dependency — this is a pure classifier, not a policy eval). The
+script's `RUNS_DIR` is hardcoded to `runs_v3/` (attempt 3, this stage's
+canonical result) — running it fresh **will overwrite** `runs_v3/*.json`
+and `charts/*.png` in place.
+
+**Verified 2026-07-30** by running the script against a scratch copy in an
+isolated sibling directory (not against this experiment's own `runs_v3/`,
+out of caution before confirming reproducibility): all 13 output files
+(`summary.json` plus all 12 `<config>_seed_<k>.json` runs) came back
+**byte-for-byte identical** to the committed `runs_v3/` files, including
+every accuracy, loss, and confusion-matrix value in this document's
+tables — gate (a) 94.2-98.1% across all 12 runs, gate (b) 0.0% in all 12,
+exactly as reported above. `torch.manual_seed(seed)` covers the only
+randomness in the pipeline (classifier weight init; the training/held-out
+data and sentence embeddings are both fixed), so this run is fully
+deterministic on CPU. **Given this confirmed exact match, a real rerun
+would safely reproduce `runs_v3/` in place** — but this verification pass
+still used a scratch copy and left the committed `runs_v3/` untouched, so
+nothing here depends on trusting that claim after the fact.

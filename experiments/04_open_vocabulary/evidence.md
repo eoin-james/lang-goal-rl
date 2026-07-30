@@ -865,3 +865,25 @@ updates in the same edit (not deferred):**
    success on 14 held-out paraphrases, zero-shot, no retraining. See Known
    risks for the reference-coverage scalability condition before stage 6."
 
+### Reproduce
+Reproduces the final, passing mechanism (attempt 4's k=1 nearest-neighbor
+lookup over the combined 84-sentence vocabulary) only — not the three
+superseded MLP-based attempts above. `--seed` has no default in
+`eval_nn_lookup_held_out.py`, so run all 3 seeds explicitly; each run also
+prints the k=3 comparison already reported alongside k=1 above:
+```
+cd experiments/04_open_vocabulary
+uv run python eval_nn_lookup_held_out.py --seed 0
+uv run python eval_nn_lookup_held_out.py --seed 1
+uv run python eval_nn_lookup_held_out.py --seed 2
+```
+No retraining anywhere: loads each of stage 3's already-trained SAC
+checkpoints (`../03_language_goal_projection/checkpoints/seed_<k>.zip`) via
+`SAC.load(...)`, builds the zero-learnable-parameter k-NN lookup over the
+combined 84-sentence reference set, and re-runs the held-out RL eval.
+Verified 2026-07-30, all 3 seeds: k=1 mean success rate over the 14
+held-out instructions = 0.5714 for every seed — an exact match to the
+per-seed 0.571/0.571/0.571 and the k=1 aggregate mean=0.5714 reported
+above (deterministic: frozen checkpoints, frozen sentence encoder, no
+learned projection).
+

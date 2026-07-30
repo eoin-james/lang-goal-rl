@@ -106,3 +106,25 @@ specific overfitting does not propagate forward.
 Recommendation to manager: mark Done in ROADMAP, with the r=0.571 (held-out)
 figure and the overfitting gap recorded in the Status tag for honest
 provenance.
+
+### Reproduce
+```
+uv run python experiments/02_contrastive_goal_embedding/diagnostic_distance_correlation.py
+```
+Loads the committed, already-pretrained `artifacts/goal_encoder.pt` (no
+retraining) and re-runs the distance-in-latent diagnostic on the same fixed
+held-out goal seed (5000, 500 goals). Verified 2026-07-30: reproduces
+`embedding_distance_correlation=0.5709` exactly, matching the "Distance-in-
+latent diagnostic" figure above bit-for-bit (pure inference through a frozen
+network, no stochastic element left once the checkpoint is fixed).
+
+**Gap, not smoothed over:** this only reproduces the second half of the
+proof gate. The first half — the per-seed RL success-rate table above — has
+no reproducible path from committed artifacts: `train.py` never calls
+`model.save(...)` for any of the 10 stage-2 SAC+HER seeds (unlike stage 1,
+which had this gap retroactively fixed by
+`experiments/01_uvfa_her_baseline/provision_checkpoints.py`), so no
+`checkpoints/seed_<k>.zip` exists to reload. Reproducing that half would
+require retraining from scratch, which is out of scope for this section —
+flagging as a follow-up gap (analogous to stage 1's pre-existing
+checkpoint gap) rather than building new checkpoint-provisioning logic here.
