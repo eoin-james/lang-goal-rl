@@ -3,8 +3,14 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # MuJoCo's OffScreenViewer still needs a real GL backend even in
+      # render_mode="rgb_array" -- GLFW fails outright with no X11 display,
+      # so force the software OSMesa renderer instead.
+      MUJOCO_GL: osmesa
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libosmesa6-dev libgl1-mesa-glx libglfw3
       - uses: astral-sh/setup-uv@v3
       - run: uv sync
       - run: uv run pytest tests/lang_goal_rl -q
