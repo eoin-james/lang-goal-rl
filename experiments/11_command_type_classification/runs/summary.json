@@ -1,0 +1,166 @@
+{
+  "baseline_200ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.6875,
+      "unsupported_actionable_rate": 0.0,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 1.0
+      },
+      "final_train_loss": 0.08908672630786896
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.11040768772363663
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.09062868356704712
+    }
+  ],
+  "more_epochs_1000ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0023645819164812565
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.002748920815065503
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0024640148039907217
+    }
+  ],
+  "lower_lr_2000ep_lr5e-4": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.001752891344949603
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.002281477674841881
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0020179760176688433
+    }
+  ],
+  "class_balanced_500ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.011601381935179234
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.012014645151793957
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.6666666666666666,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 0.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.6666666666666666,
+        "RESET": 0.8333333333333334,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.00979264359921217
+    }
+  ]
+}

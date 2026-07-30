@@ -1,0 +1,166 @@
+{
+  "baseline_200ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.9615384615384616,
+      "unsupported_actionable_rate": 0.0,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 1.0
+      },
+      "final_train_loss": 0.04168831557035446
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.05327964946627617
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.9615384615384616,
+      "unsupported_actionable_rate": 0.0,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 1.0
+      },
+      "final_train_loss": 0.04683232679963112
+    }
+  ],
+  "more_epochs_1000ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.001197667559608817
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.001408111653290689
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0013565007830038667
+    }
+  ],
+  "lower_lr_2000ep_lr5e-4": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0010253657819703221
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.0012023772578686476
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.001146006165072322
+    }
+  ],
+  "class_balanced_500ep_lr1e-3": [
+    {
+      "seed": 0,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.005123110022395849
+    },
+    {
+      "seed": 1,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.005484569352120161
+    },
+    {
+      "seed": 2,
+      "overall_accuracy": 0.9423076923076923,
+      "unsupported_actionable_rate": 0.1,
+      "per_class_accuracy": {
+        "MOVE": 1.0,
+        "GOTO_NAMED_REGION": 1.0,
+        "STOP": 0.75,
+        "RESET": 1.0,
+        "UNSUPPORTED": 0.9
+      },
+      "final_train_loss": 0.004897659178823233
+    }
+  ]
+}

@@ -269,3 +269,59 @@ command.
 Next up is the part that actually needed all of this scaffolding: teaching
 a language model to speak this typed-command language instead of picking
 from 7 fixed buckets.
+
+---
+
+## 2026-07-30 — Phase 2b, stage 1: the classifier and I disagreed about what a sentence meant
+
+First step of teaching a model to speak the typed-command language: before
+it can figure out *where* to move or *how far*, it has to figure out *what
+kind* of instruction it just heard — a move, a stop, a reset, "go to that
+spot over there," or something it has no business trying to handle at all.
+Five buckets, one small classifier sitting on top of the same sentence
+embeddings used everywhere else in this project.
+
+First attempt: 0% on one of the five buckets. Not "struggling" — flat
+zero, every single time, no matter how long I trained it or how I tweaked
+the settings. That's actually a useful signal once you know how to read
+it: if more training makes the model *more* confident while it stays
+*exactly as wrong*, the model isn't the problem. I was.
+
+Here's what happened. I told the builder to reuse a pile of sentences from
+way back near the start of this project — "reach forward," "angle your
+hand toward the front" — as training examples for "go to a named spot."
+Seemed efficient: why write new sentences when 84 already exist. Except
+those sentences were written, deliberately, to sound like *movement
+instructions* — that was their whole job at the time. Reusing them to mean
+"go to an absolute place" instead of "move in a direction" meant I'd
+quietly taught the model that "angle X toward direction" means "absolute
+destination," which is exactly backwards from what a real move instruction
+sounds like. The model wasn't confused. It learned precisely what I fed
+it — I just fed it the wrong thing.
+
+Fixed it by giving each meaning its own honest phrasing: move instructions
+now always carry a sense of degree ("a bit," "slightly," "a good
+distance"); go-to-a-place instructions now always name an actual
+destination ("go to the far left side") instead of a direction. That
+alone fixed the 0%.
+
+Which uncovered two much smaller problems the big one had been hiding:
+the model had never seen a stop command phrased as an idiom ("cut it
+out") instead of the word "stop," and had never seen a math question at
+all, so one showed up as a random guess instead of correctly getting
+flagged as "not something I can do." A dozen or so extra example
+sentences later, both were fixed too.
+
+One small leftover, and I'm leaving it alone on purpose: two "restart"
+phrasings now get mildly confused with the newly-taught stop idioms. It
+doesn't break anything that matters yet, and chasing it further right now
+would be polishing a corner nobody's using yet. Noted, not fixed —
+that's a deliberate call, not an oversight.
+
+Honest note for anyone reading this as "AI built a robot classifier
+flawlessly": it took three rounds, and the first failure was a mistake I
+made in how I set up the task, not a bug the model introduced. That's
+normal. The part worth being proud of isn't "it worked first try" — it's
+that the failure mode was diagnosable (0% + falling training loss = look
+at your data, not your hyperparameters) and every fix was checked by an
+independent pass before I called it done, twice.

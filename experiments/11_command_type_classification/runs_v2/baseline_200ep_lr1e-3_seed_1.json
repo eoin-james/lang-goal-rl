@@ -1,0 +1,518 @@
+{
+  "overall_accuracy": 0.9423076923076923,
+  "n_held_out": 52,
+  "per_class_accuracy": {
+    "MOVE": 1.0,
+    "GOTO_NAMED_REGION": 1.0,
+    "STOP": 0.75,
+    "RESET": 1.0,
+    "UNSUPPORTED": 0.9
+  },
+  "confusion_matrix": [
+    [
+      12,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      14,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      6,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      9
+    ]
+  ],
+  "n_unsupported": 10,
+  "unsupported_actionable_count": 1,
+  "unsupported_actionable_rate": 0.1,
+  "predictions": [
+    {
+      "text": "position yourself near the middle of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the middle of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the front region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the front region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the back region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the back region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the left region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the left region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the right region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the right region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the upper region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the upper region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "position yourself near the lower region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "work your way over to the lower region of the workspace",
+      "true": "GOTO_NAMED_REGION",
+      "predicted": "GOTO_NAMED_REGION"
+    },
+    {
+      "text": "scoot forward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "advance just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "scoot backward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "retreat just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "scoot leftward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "veer left just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "scoot rightward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "veer right just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "scoot upward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "climb just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "scoot downward by a small margin",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "descend just a fraction from where you currently are",
+      "true": "MOVE",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "cut it out immediately",
+      "true": "STOP",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "quit right where you are",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "no more movement please",
+      "true": "STOP",
+      "predicted": "MOVE"
+    },
+    {
+      "text": "settle down and remain still",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "halt any further motion",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "just stay exactly put",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "cease all movement now",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "power down and stay still",
+      "true": "STOP",
+      "predicted": "STOP"
+    },
+    {
+      "text": "wipe the slate clean",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "revert to the very beginning",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "kick things off again",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "begin the run over",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "restart everything from scratch",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "go back to time zero",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "erase progress and begin anew",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "power everything back to zero",
+      "true": "RESET",
+      "predicted": "RESET"
+    },
+    {
+      "text": "assemble the toy blocks",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "fetch me a coffee please",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "what's on the news today",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "recite a poem for me",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "purple triangles whisper loudly",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "check the humidity level outside",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "schedule a meeting for tomorrow",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "fold the laundry neatly please",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "what movie should i watch tonight",
+      "true": "UNSUPPORTED",
+      "predicted": "UNSUPPORTED"
+    },
+    {
+      "text": "calculate the square root of nine",
+      "true": "UNSUPPORTED",
+      "predicted": "RESET"
+    }
+  ],
+  "config": "baseline_200ep_lr1e-3",
+  "seed": 1,
+  "final_train_loss": 0.05327964946627617,
+  "loss_history": [
+    1.6292612552642822,
+    1.6202166080474854,
+    1.6112982034683228,
+    1.602292776107788,
+    1.5930083990097046,
+    1.5832401514053345,
+    1.572879433631897,
+    1.561819314956665,
+    1.5501275062561035,
+    1.5378575325012207,
+    1.5249614715576172,
+    1.5114386081695557,
+    1.4973186254501343,
+    1.4826560020446777,
+    1.467497706413269,
+    1.4518603086471558,
+    1.4357839822769165,
+    1.4192793369293213,
+    1.4023370742797852,
+    1.3849962949752808,
+    1.3672914505004883,
+    1.3492441177368164,
+    1.3308743238449097,
+    1.3122137784957886,
+    1.29330313205719,
+    1.2741822004318237,
+    1.2548935413360596,
+    1.2354947328567505,
+    1.2160249948501587,
+    1.1965183019638062,
+    1.1770282983779907,
+    1.157591700553894,
+    1.1382570266723633,
+    1.1190581321716309,
+    1.1000193357467651,
+    1.081173300743103,
+    1.0625420808792114,
+    1.0441136360168457,
+    1.025913953781128,
+    1.0079622268676758,
+    0.9902731776237488,
+    0.9728529453277588,
+    0.955711305141449,
+    0.9388341307640076,
+    0.9222207069396973,
+    0.9058620929718018,
+    0.8897464275360107,
+    0.8738683462142944,
+    0.8582238554954529,
+    0.8427996039390564,
+    0.8275886178016663,
+    0.8125879168510437,
+    0.7977859973907471,
+    0.7831811904907227,
+    0.7687692642211914,
+    0.7545425295829773,
+    0.7405042052268982,
+    0.7266639471054077,
+    0.7130140662193298,
+    0.6995643973350525,
+    0.6863184571266174,
+    0.67327880859375,
+    0.6604446172714233,
+    0.6478155851364136,
+    0.635391891002655,
+    0.6231723427772522,
+    0.6111621260643005,
+    0.5993639230728149,
+    0.5877751708030701,
+    0.5764074921607971,
+    0.5652560591697693,
+    0.5543172955513,
+    0.5435866117477417,
+    0.5330657958984375,
+    0.5227532386779785,
+    0.5126393437385559,
+    0.5027316212654114,
+    0.49302396178245544,
+    0.48351576924324036,
+    0.47419944405555725,
+    0.46506619453430176,
+    0.4561123251914978,
+    0.4473320245742798,
+    0.4387214779853821,
+    0.43027976155281067,
+    0.42200157046318054,
+    0.41388610005378723,
+    0.4059288501739502,
+    0.398125559091568,
+    0.3904719352722168,
+    0.3829629719257355,
+    0.37559419870376587,
+    0.368362158536911,
+    0.36127129197120667,
+    0.3543134331703186,
+    0.34748607873916626,
+    0.34078487753868103,
+    0.33420729637145996,
+    0.32775041460990906,
+    0.3214097321033478,
+    0.3151831030845642,
+    0.3090721666812897,
+    0.30307337641716003,
+    0.29718443751335144,
+    0.29140400886535645,
+    0.2857280373573303,
+    0.2801555097103119,
+    0.2746850550174713,
+    0.2693164348602295,
+    0.26404669880867004,
+    0.2588750123977661,
+    0.25380104780197144,
+    0.2488202452659607,
+    0.2439308762550354,
+    0.23913180828094482,
+    0.23442265391349792,
+    0.22980357706546783,
+    0.22527238726615906,
+    0.22082877159118652,
+    0.21647118031978607,
+    0.21219787001609802,
+    0.2080068737268448,
+    0.2038985788822174,
+    0.1998712718486786,
+    0.19592419266700745,
+    0.1920561045408249,
+    0.18826693296432495,
+    0.18455541133880615,
+    0.18092142045497894,
+    0.17736206948757172,
+    0.17387755215168,
+    0.17046646773815155,
+    0.1671283096075058,
+    0.1638624370098114,
+    0.16066551208496094,
+    0.1575377881526947,
+    0.1544780433177948,
+    0.15148532390594482,
+    0.1485583782196045,
+    0.1456962376832962,
+    0.14289772510528564,
+    0.14016126096248627,
+    0.13748599588871002,
+    0.13487012684345245,
+    0.13231335580348969,
+    0.1298140436410904,
+    0.12737084925174713,
+    0.12498272210359573,
+    0.12265012413263321,
+    0.12037082761526108,
+    0.11814352124929428,
+    0.11596692353487015,
+    0.11384057253599167,
+    0.11176345497369766,
+    0.10973480343818665,
+    0.10775269567966461,
+    0.10581663250923157,
+    0.10392569750547409,
+    0.10207788646221161,
+    0.1002727746963501,
+    0.0985087975859642,
+    0.09678509086370468,
+    0.0951007753610611,
+    0.0934547632932663,
+    0.09184640645980835,
+    0.09027497470378876,
+    0.0887390747666359,
+    0.08723831921815872,
+    0.08577161282300949,
+    0.08433827012777328,
+    0.08293730020523071,
+    0.0815676674246788,
+    0.08022832125425339,
+    0.07891886681318283,
+    0.077638640999794,
+    0.07638674974441528,
+    0.0751626044511795,
+    0.0739653930068016,
+    0.07279451936483383,
+    0.07164981961250305,
+    0.0705304741859436,
+    0.06943510472774506,
+    0.06836330145597458,
+    0.06731466203927994,
+    0.06628896296024323,
+    0.06528538465499878,
+    0.06430455297231674,
+    0.06334485858678818,
+    0.06240564212203026,
+    0.061486367136240005,
+    0.06058623269200325,
+    0.05970527604222298,
+    0.05884258449077606,
+    0.05799757316708565,
+    0.05716981366276741,
+    0.05635930597782135,
+    0.055565245449543,
+    0.05478764325380325,
+    0.05402594804763794,
+    0.05327964946627617
+  ]
+}

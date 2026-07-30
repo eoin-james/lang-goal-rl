@@ -205,3 +205,57 @@ treating as a standing default, not a one-off correction.
 See `experiments/08_relative_move_validation/evidence.md`,
 `experiments/09_waypoint_following/evidence.md`,
 `experiments/10_typed_command_interface/evidence.md`.
+
+## 2026-07-30 — Stage 11: a plan-level vocabulary collision, then two rounds of narrow data gaps
+
+Phase 2b's first stage (classify a sentence into MOVE/GOTO_NAMED_REGION/
+STOP/RESET/UNSUPPORTED before any continuous regression happens) took
+three attempts, and the first failure was my own design choice, not the
+builder's implementation. I'd specified reusing Phase 1's
+`goal_region_vocabulary`/`augmented_training_vocabulary` (84 sentences
+like "reach forward", "angle your hand toward the front") verbatim as
+GOTO_NAMED_REGION's training data — reasonable on paper (why write new
+sentences when 84 already exist and already map to the 7 regions), except
+that vocabulary was written in Phase 1 to sound like *directional
+movement*, since that's exactly what region-naming needed. Reused as an
+"absolute destination" label, it collided head-on with MOVE: the
+classifier learned "angle X toward direction" → GOTO_NAMED_REGION from
+training, and every held-out MOVE test sentence phrased similarly hit
+that exact same class. Signature that made this diagnosable rather than
+mysterious: 0% accuracy on MOVE across all 4 hyperparameter configs and
+12 runs, while training loss dropped to near-zero in every one of them —
+textbook "this is a data problem, not a tuning problem."
+
+Fix: rewrote both classes' phrasing conventions so they carry a
+structural signal instead of relying on which verbs happen to land where
+— MOVE sentences always carry a magnitude/degree cue ("a bit", "slightly",
+"a good distance"); GOTO_NAMED_REGION sentences always name a destination
+via a "go/head/arrive at <place>" frame, never a directional verb. A new
+diagnostic (`check_cross_class_embedding_overlap`) confirmed the fix
+directly: 11.9% GOTO→MOVE nearest-neighbor collision on the old
+vocabulary, 0.0% on the new one.
+
+That resolved MOVE/GOTO_NAMED_REGION completely (both 100%) but exposed
+two much smaller, unrelated coverage gaps the larger collision had been
+masking: STOP's training set had zero idiomatic phrasings ("cut it out",
+"no more movement please" had no near neighbor at all), and UNSUPPORTED
+had zero math/calculation examples ("calculate the square root of nine"
+floated to a different wrong class in every attempt, not because it
+resembled that class, but because it resembled nothing). Adding ~13
+phrasings across both classes closed the gate in a third attempt (98.08%
+best-config accuracy, zero seed variance, 0% UNSUPPORTED-as-actionable).
+
+One residual, judged non-blocking by an independent review: the newly-
+added STOP idioms now sit close enough in embedding space to two of
+RESET's own idiomatic phrasings ("kick things off again", "wipe the
+slate clean") to cause a smaller, bounded confusion — a coverage-gap-at-
+the-tail, not a repeat of the original convention-level collision. Logged
+as a finding for a future `check_cross_class_embedding_overlap` extension
+covering all class pairs, not just the one it was built to catch.
+
+Lesson worth carrying into stages 12-14: when reusing an existing
+vocabulary for a *new* label, check whether that vocabulary's original
+writing convention (not just its content) matches the new label's
+intended meaning — reuse-for-speed and reuse-for-correctness aren't the
+same thing.
+See `experiments/11_command_type_classification/evidence.md`.

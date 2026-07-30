@@ -13,9 +13,15 @@ mid-episode. Full 7-stage breakdown, results, and known risks: see
 
 ## Phase 2 (in progress): continuous live command agent
 
-**Phase 2a is underway** — deterministic typed commands, relative-move
-validation, and waypoint following, no learned language grounding yet.
-Stage-by-stage record: [PHASE2_ROADMAP.md](PHASE2_ROADMAP.md).
+**Phase 2a (done, pending stage 7's human sign-off)** — deterministic
+typed commands, relative-move validation, and waypoint following, no
+learned language grounding yet. Stage-by-stage record:
+[PHASE2_ROADMAP.md](PHASE2_ROADMAP.md).
+
+**Phase 2b (in progress, paused after stage 11 for review)** — teaching a
+learned language layer to translate arbitrary English into Phase 2a's
+typed-command language (trained heads on frozen sentence embeddings, no
+LLM). Stage-by-stage record: [PHASE2B_ROADMAP.md](PHASE2B_ROADMAP.md).
 
 Replace the current seven-region sentence classification with a continuously
 running agent that accepts, interrupts, and executes parameterized motion
