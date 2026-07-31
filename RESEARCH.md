@@ -1,5 +1,34 @@
 # Research Direction
 
+## Abstract
+
+Large language models are the default interface for commanding embodied
+agents, but they are a poor fit for the platforms that need language
+most: drones and small robots with hard reaction-time limits, no
+connectivity guarantees, no onboard GPU, and behavior that must be
+certifiable — the same command interpreted the same way, every time.
+This work asks how far a language-commanded agent can get **without any
+generative model**: a frozen 22M-parameter sentence encoder as the
+entire language-understanding stack, trained RL policies as the skills,
+and a typed command layer as the contract between them.
+
+Three questions structure the research. **The ceiling:** where exactly
+does frozen-embedding grounding break, and can each failure mode be
+given a reproducible diagnostic signature — a taxonomy with a probe
+suite, not anecdotes? **Repair:** when the interface misunderstands,
+can a structured correction dialogue — the agent exposes its
+interpretation, the human corrects it — warp the grounding map online,
+per operator, recovering capability past the frozen ceiling?
+**Manner:** commands that change *how*, not *where* ("stay low",
+"carefully"), as the hardest case for both.
+
+The intended contribution is a diagnostic method plus evidence that
+**conversation can substitute for scale**: a commandable embodied agent
+at ~1/300th the parameters of an LLM interface, whose failure modes are
+mapped in advance rather than discovered in the field.
+
+---
+
 *Established 2026-07-31, after the Phase 2b stage-11 pause. This is the
 standing frame the roadmaps answer to. It replaces the earlier implicit
 framing ("staged portfolio project working toward live English
@@ -136,6 +165,38 @@ reproducibility discipline; they come after, as an application.
 - Stages 12–15 (regression heads for continuous parameters) remain
   valid as "continuous parameters ground in embedding space" — a
   Thread 1 data point — currently paused.
+
+## The now — first tasks (2026-07-31)
+
+Stage-sized, runnable on the existing stack, no big decisions required.
+Each is a normal stage: gate, multi-seed where applicable, builder →
+runner → reviewer.
+
+1. **Stage 12 (replaces the old regression-heads stage 12): the
+   collision probe, formalized.** Turn the stage-11 vocabulary-collision
+   finding into a standalone, encoder-agnostic tool: given any labeled
+   command vocabulary, predict *before training* which class pairs will
+   collide (embedding-space cross-class overlap → predicted confusion),
+   validated against actual trained-classifier confusion on the stage-11
+   data. Gate: the probe's pre-training prediction ranks the known
+   MOVE/GOTO collision first, and its score correlates with realized
+   confusion across deliberately-constructed vocabularies. This is
+   Thread 1's first brick and needs zero new environment.
+2. **Stage 13: the negation probe.** Same probe machinery, second
+   failure category: are "go left" / "don't go left" separable in
+   frozen-embedding space? NLP literature says encoders are
+   negation-blind; nobody has measured it as a *control interface*
+   failure (what does the policy actually do?). Cheap, and the first
+   result that speaks directly to drone safety ("don't cross the
+   ridge").
+3. **Stage 14: second encoder.** Run both probes against one more
+   encoder (mpnet or GTE-small). The moment results exist for two
+   encoders, this is a *method*, not a MiniLM autopsy.
+
+Deliberately deferred: the testbed change (PickAndPlace / observer
+gridworld) — it becomes urgent only when Thread 2 (repair) starts;
+Thread 1 runs fine on vocabularies alone. The old stages 12–15
+(regression heads) move behind these; renumber when they're picked up.
 
 ## Honest positioning (from the 2026-07-31 viability assessment)
 
