@@ -12,6 +12,11 @@ dependencies = [
     "imageio>=2.37.4",
     "sentence-transformers>=5.6.1",
     "stable-baselines3[extra]>=2.9.0",
+    # torch is imported directly (classifiers, regression heads, goal encoder) --
+    # declared explicitly, and pinned to the CPU wheel index below: this project
+    # never uses a GPU, and the default CUDA-enabled Linux wheels segfault on
+    # import on GPU-less machines (caught by the first real CI run).
+    "torch>=2.9",
 ]
 
 [build-system]
@@ -22,3 +27,11 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
