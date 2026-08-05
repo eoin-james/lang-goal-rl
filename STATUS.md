@@ -1,5 +1,20 @@
 # Progress: 0 to hero
 
+## Current state (2026-08-04, at a glance)
+
+| | |
+|---|---|
+| **Phase** | Explicit research program per [RESEARCH.md](RESEARCH.md) (pivoted 2026-07-31 after an adversarial viability review). Stages 0–11 done; stage 7's human sign-off pending. |
+| **Next** | Stages 12–14, the probe stages: collision probe, negation probe, second encoder ([PHASE2B_ROADMAP.md](PHASE2B_ROADMAP.md)). |
+| **Headline capability** | Mid-episode English redirection with no reset: live typed instructions redirect the robot within a median of 3 steps, at no measurable cost vs. no-switch baselines (stages 5, 6, 10). |
+| **Headline finding** | Vocabulary-convention collision: two intent classes sharing a phrasing convention are unseparable by frozen embeddings — fingerprint: 0% on one class across all configs while training loss → 0 (stage 11). Now the seed of Thread 1 in [RESEARCH.md](RESEARCH.md). |
+| **Tests / CI** | 415 tests, green in GitHub Actions on every push. |
+| **Reproducibility** | Encoder revision-pinned; every stage's `evidence.md` has a verified reproduce command. |
+
+The narrative below is the full stage-by-stage record, oldest phase first.
+
+---
+
 **All 7 stages done — the project's core claim is proven.** Click any
 stage below to expand its actual results — no need to open other files for
 the numbers. Every report is now split into a short story you can read in
