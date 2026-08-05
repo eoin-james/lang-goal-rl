@@ -333,3 +333,63 @@ normal. The part worth being proud of isn't "it worked first try" — it's
 that the failure mode was diagnosable (0% + falling training loss = look
 at your data, not your hyperparameters) and every fix was checked by an
 independent pass before I called it done, twice.
+
+---
+
+## 2026-07-31 — The all-hands, or: we ran a literature review against ourselves and lost
+
+After stage 11 I paused everything. The plan said stages 12-15 were next —
+regression heads, compound utterances, the free-language capstone — and the
+momentum said just keep going. That's exactly why I stopped. Momentum is how
+you spend three months building something someone published in 2022 and
+never notice, because you never looked. So instead of continuing, I
+commissioned an adversarial literature review of this project's own thesis,
+with explicit permission to return a "kill" verdict. A sunk-cost check, run
+on purpose, against my own work.
+
+The verdict was pivot, and the reasons sting in the specific way true
+things do. Phase 1's headline capability — frozen encoder, mid-episode
+English redirection, no LLM — turns out to be a small-scale rediscovery of
+*Interactive Language* (Lynch et al., 2022), who did real-time language
+redirection at 87,000-instruction scale four years ago. The
+style-conditioning arc I'd been sketching ("move carefully", "be quick")
+is already owned ground: PADL and CALM did language-directed behavioral
+style for physics characters at SIGGRAPH in 2022-23. And correction-as-a-
+learning-signal, the repair idea, is a crowded field — LILAC, DROC, and
+half a dozen others. If I'd kept going on momentum, I'd have been rebuilding
+2022 with a smaller encoder and calling it research. The full report is at
+[docs/research/2026-07-31-thesis-viability-assessment.md](docs/research/2026-07-31-thesis-viability-assessment.md)
+— it names every one of these papers, and I'd rather link it than summarize
+it kindly.
+
+But here's the part that made the review worth commissioning rather than
+just deflating. The one thing it couldn't find prior work for wasn't
+anything I'd planned. It was the *accident* — stage 11's
+vocabulary-collision finding. Two command classes whose training phrasings
+share a surface convention are flat-out unseparable by a frozen embedding,
+no matter how much you tune, and the failure has a crisp, reproducible
+fingerprint: 0% on one class across every config while training loss drops
+to zero. That's not a bug report, it's a diagnostic signature. And nobody
+has published a robotics-facing taxonomy of frozen-embedding grounding
+failures with signatures like that. The review searched twice. The most
+original thing in this repo is a negative result I stumbled into while
+getting something else wrong.
+
+So the project pivoted, and the new shape is written down properly in
+[RESEARCH.md](RESEARCH.md): an explicit research program, not a staged
+portfolio arc. Three threads — map the ceiling (that taxonomy, built from
+specimens like the collision), repair (structured correction dialogue that
+warps the grounding map online, past the frozen ceiling), and manner
+("stay low", "carefully") demoted from a system to the hardest test case.
+The north star is commanding a drone like a competent teammate; the bet is
+still no generative model anywhere, because a drone is the worst possible
+place for an LLM and the best possible argument for a 22M-parameter
+encoder whose failure modes are mapped in advance. No deadlines. The old
+stages 12-15 aren't dead — they're deferred behind three new probe stages
+that build the taxonomy's first bricks.
+
+The uncomfortable summary, stated plainly because that's the house style:
+most of what I built was rediscovery, the review proved it, and the thing
+worth keeping is the failure I didn't plan. I'll take that trade. A project
+that can't survive its own literature review was never going to survive
+anyone else's.
